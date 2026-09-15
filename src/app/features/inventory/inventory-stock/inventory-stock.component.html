@@ -1,0 +1,349 @@
+<div class="module-layout">
+  <header class="navbar glass-card">
+    <div class="nav-brand">
+      <h1 class="page-title">Inventario y Control de Stock</h1>
+      <p class="page-subtitle">Monitoreo de existencias, ajustes y alertas por sucursal</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/inventario/recepcion" class="btn btn-primary" *appHasPermission="'inventario.create'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        </svg>
+        Recepción de Mercadería
+      </a>
+      <a routerLink="/inventario/movimientos" class="btn btn-secondary" *appHasPermission="'inventario.list'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Historial de Movimientos
+      </a>
+    </div>
+  </header>
+
+  <main class="module-content">
+    <!-- Alert notifications -->
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    <!-- Filters & Branch Selection Card -->
+    <div class="card glass-card mb-4">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label class="filter-label">Sucursal:</label>
+          <select
+            class="form-control branch-select"
+            [ngModel]="selectedBranchId()"
+            (ngModelChange)="onBranchChange($event)">
+            @for (b of branches(); track b.id) {
+              <option [value]="b.id">
+                {{ b.nombre }} ({{ b.ciudad }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button
+            class="btn btn-secondary btn-sm"
+            [class.active]="soloConStock()"
+            (click)="toggleSoloConStock()">
+            {{ soloConStock() ? 'Solo con Stock' : 'Mostrar Todos' }}
+          </button>
+          <button class="btn btn-secondary btn-sm" (click)="loadStock(); loadAlerts();" title="Recargar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            Recargar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Summary Row -->
+    <div class="stats-grid mb-4">
+      <div class="stat-card glass-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+            <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/>
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Artículos</span>
+          <span class="stat-value">{{ inventoryItems().length }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Stock Total</span>
+          <span class="stat-value">{{ getTotalStock() }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Reservado</span>
+          <span class="stat-value">{{ getTotalReservado() }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Disponible</span>
+          <span class="stat-value">{{ getTotalDisponible() }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card" [class.has-alerts]="alerts().length > 0">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Alertas</span>
+          <span class="stat-value" [class.text-error]="alerts().length > 0">{{ alerts().length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock Table Card -->
+    <div class="card glass-card">
+      <div class="card-header">
+        <h3>Existencias en Sucursal</h3>
+        <span class="badge badge-variant">{{ inventoryItems().length }} registros</span>
+      </div>
+      <div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Producto / Variante</th>
+                <th>SKU</th>
+                <th>Ubicación</th>
+                <th class="text-center">Stock Actual</th>
+                <th class="text-center">Reservado</th>
+                <th class="text-center">Disponible</th>
+                <th class="text-center">Mínimo</th>
+                <th class="text-center">Estado</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (isLoading()) {
+                <tr>
+                  <td colspan="9" class="text-center py-4">
+                    <div class="spinner"></div>
+                    <p class="text-muted mt-2">Cargando inventario...</p>
+                  </td>
+                </tr>
+              } @else if (inventoryItems().length === 0) {
+                <tr>
+                  <td colspan="9" class="text-center py-4 text-muted">
+                    No hay registros de inventario para esta sucursal.
+                  </td>
+                </tr>
+              } @else {
+                @for (item of inventoryItems(); track item.id) {
+                  <tr>
+                    <td>
+                      <div class="product-info">
+                        <strong class="text-primary">{{ item.variantInfo?.productoNombre || 'Variante' }}</strong>
+                        <span class="product-meta text-muted text-xs">
+                          Talla: <strong>{{ item.variantInfo?.talla || '-' }}</strong> | Color: <strong>{{ item.variantInfo?.color || '-' }}</strong>
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <code>{{ item.variantInfo?.sku || item.variante_id.substring(0,8) }}</code>
+                    </td>
+                    <td>
+                      <span class="badge badge-variant" *ngIf="item.ubicacion">{{ item.ubicacion }}</span>
+                      <span class="text-muted" *ngIf="!item.ubicacion">-</span>
+                    </td>
+                    <td class="text-center font-bold">{{ item.stock_actual }}</td>
+                    <td class="text-center font-medium">{{ item.stock_reservado }}</td>
+                    <td class="text-center font-bold" [style.color]="item.stock_disponible > 0 ? 'var(--success)' : 'var(--error)'">
+                      {{ item.stock_disponible }}
+                    </td>
+                    <td class="text-center text-muted">{{ item.stock_minimo }}</td>
+                    <td class="text-center">
+                      <span *ngIf="item.alerta === 'CRITICO'" class="badge badge-danger">Crítico</span>
+                      <span *ngIf="item.alerta === 'BAJO'" class="badge badge-warning">Bajo</span>
+                      <span *ngIf="item.alerta === 'EXCEDENTE'" class="badge badge-variant">Excedente</span>
+                      <span *ngIf="!item.alerta" class="badge badge-success">OK</span>
+                    </td>
+                    <td class="text-end actions-cell">
+                      <button
+                        class="btn btn-sm btn-secondary"
+                        title="Ajustar Stock (+/-)"
+                        (click)="openAdjustModal(item)"
+                        *appHasPermission="'inventario.update'">
+                        Ajustar
+                      </button>
+                      <button
+                        class="btn btn-sm btn-secondary"
+                        title="Configurar ubicación y mínimo"
+                        (click)="openSettingsModal(item)"
+                        *appHasPermission="'inventario.update'">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px">
+                          <circle cx="12" cy="12" r="3"/>
+                          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal Ajuste Manual de Stock -->
+<div class="modal-backdrop" *ngIf="showAdjustModal()">
+  <div class="modal-card glass-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Ajuste Manual de Stock</h3>
+      <button type="button" class="btn-close" (click)="closeAdjustModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="item-summary mb-3">
+        <div><strong>Producto:</strong> {{ selectedItemForAdjust?.variantInfo?.productoNombre }} ({{ selectedItemForAdjust?.variantInfo?.talla }} / {{ selectedItemForAdjust?.variantInfo?.color }})</div>
+        <div><strong>Stock Actual:</strong> {{ selectedItemForAdjust?.stock_actual }} | <strong>Reservado:</strong> {{ selectedItemForAdjust?.stock_reservado }}</div>
+      </div>
+
+      <form [formGroup]="adjustForm" (ngSubmit)="onAdjustSubmit()">
+        <div class="form-group mb-3">
+          <label class="form-label">Cantidad a ajustar (+ para sumar, - para restar) *</label>
+          <input
+            type="number"
+            class="form-control"
+            formControlName="cantidad"
+            placeholder="Ej: 5 o -3"
+            required>
+          <small class="form-hint text-muted">
+            Nuevo stock resultante: {{ (selectedItemForAdjust?.stock_actual || 0) + (adjustForm.value.cantidad || 0) }}
+          </small>
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="form-label">Motivo o Nota explicativa</label>
+          <textarea
+            class="form-control"
+            formControlName="nota"
+            rows="3"
+            placeholder="Ej: Mermas, daño en transporte, conteo físico..."></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeAdjustModal()">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="adjustForm.invalid || adjustForm.value.cantidad === 0 || isAdjusting()">
+            {{ isAdjusting() ? 'Guardando...' : 'Aplicar Ajuste' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Configuración de Inventario -->
+<div class="modal-backdrop" *ngIf="showSettingsModal()">
+  <div class="modal-card glass-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Configurar Inventario</h3>
+      <button type="button" class="btn-close" (click)="closeSettingsModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="settingsForm" (ngSubmit)="onSettingsSubmit()">
+        <div class="form-group mb-3">
+          <label class="form-label">Stock Mínimo de Alerta *</label>
+          <input
+            type="number"
+            min="0"
+            class="form-control"
+            formControlName="stock_minimo"
+            required>
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="form-label">Ubicación física en sucursal</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="ubicacion"
+            placeholder="Ej: Estante A1, Bodega 2, Perchero 3">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeSettingsModal()">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="settingsForm.invalid || isSavingSettings()">
+            {{ isSavingSettings() ? 'Guardando...' : 'Guardar Cambios' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

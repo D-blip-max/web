@@ -1,0 +1,149 @@
+<div class="module-layout">
+  <header class="navbar glass-card">
+    <div class="nav-brand">
+      <h1 class="page-title">Historial de Movimientos de Inventario</h1>
+      <p class="page-subtitle">Kardex de entradas, salidas, reservas y ajustes</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/inventario" class="btn btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+        Ver Stock
+      </a>
+      <a routerLink="/inventario/recepcion" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        </svg>
+        Nueva Recepción
+      </a>
+    </div>
+  </header>
+
+  <main class="module-content">
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Filter Card -->
+    <div class="card glass-card mb-4">
+      <div class="filter-row">
+        <div class="filter-group flex-1">
+          <label class="filter-label">Filtrar por Sucursal:</label>
+          <select
+            class="form-control"
+            [ngModel]="selectedBranchId()"
+            (ngModelChange)="selectedBranchId.set($event); onFilterChange()">
+            <option value="">-- Todas las sucursales --</option>
+            @for (b of branches(); track b.id) {
+              <option [value]="b.id">
+                {{ b.nombre }} ({{ b.ciudad }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-group flex-1">
+          <label class="filter-label">Tipo de Movimiento:</label>
+          <select
+            class="form-control"
+            [ngModel]="selectedType()"
+            (ngModelChange)="selectedType.set($event); onFilterChange()">
+            <option value="">-- Todos los tipos --</option>
+            @for (t of movementTypes; track t.value) {
+              <option [value]="t.value">
+                {{ t.label }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn btn-secondary btn-sm" (click)="loadMovements()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            Refrescar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Movements Table -->
+    <div class="card glass-card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>Registros de Movimiento</h3>
+        <span class="badge badge-variant">{{ movements().length }} movimientos</span>
+      </div>
+      <div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Tipo</th>
+                <th class="text-center">Cantidad</th>
+                <th class="text-center">Stock Antes</th>
+                <th class="text-center">Stock Después</th>
+                <th>Referencia</th>
+                <th>Nota</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (isLoading()) {
+                <tr>
+                  <td colspan="7" class="text-center py-4">
+                    <div class="spinner"></div>
+                    <p class="text-muted mt-2">Cargando movimientos...</p>
+                  </td>
+                </tr>
+              } @else if (movements().length === 0) {
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-muted">
+                    No se encontraron movimientos con los filtros seleccionados.
+                  </td>
+                </tr>
+              } @else {
+                @for (m of movements(); track m.id) {
+                  <tr>
+                    <td>
+                      <span class="font-medium">{{ m.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </td>
+                    <td>
+                      <span class="badge badge-variant">{{ m.tipo }}</span>
+                    </td>
+                    <td class="text-center font-bold" [style.color]="m.cantidad > 0 ? 'var(--success)' : 'var(--error)'">
+                      {{ m.cantidad > 0 ? '+' + m.cantidad : m.cantidad }}
+                    </td>
+                    <td class="text-center text-muted">{{ m.stock_antes }}</td>
+                    <td class="text-center font-bold">{{ m.stock_despues }}</td>
+                    <td>
+                      <code *ngIf="m.referencia">{{ m.referencia }}</code>
+                      <span class="text-muted" *ngIf="!m.referencia">-</span>
+                    </td>
+                    <td>
+                      <span class="text-xs" *ngIf="m.nota">{{ m.nota }}</span>
+                      <span class="text-muted" *ngIf="!m.nota">-</span>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

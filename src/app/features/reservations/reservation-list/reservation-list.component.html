@@ -1,0 +1,274 @@
+<div class="module-layout">
+  <header class="navbar glass-card">
+    <div class="nav-brand">
+      <h1 class="page-title">Gestión de Reservas</h1>
+      <p class="page-subtitle">Seguimiento de pedidos reservados por clientes para retiro en sucursal</p>
+    </div>
+    <div class="header-actions">
+      <button
+        class="btn btn-secondary btn-sm"
+        (click)="expirePending()"
+        [disabled]="isActionLoading()"
+        *appHasPermission="'reservas.update'"
+        title="Liberar stock de reservas con más de 24h">
+        Expirar Vencidas
+      </button>
+      <a routerLink="/reservas/nueva" class="btn btn-primary" *appHasPermission="'reservas.create'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nueva Reserva
+      </a>
+    </div>
+  </header>
+
+  <main class="module-content">
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    <!-- Tabs & Filter Bar -->
+    <div class="card glass-card mb-4">
+      <div class="filter-row">
+        <div class="nav-tabs-custom">
+          <button
+            class="tab-btn"
+            [class.active]="activeTab() === 'PENDIENTES'"
+            (click)="setTab('PENDIENTES')">
+            Pendientes
+          </button>
+          <button
+            class="tab-btn"
+            [class.active]="activeTab() === 'PREPARADAS'"
+            (click)="setTab('PREPARADAS')">
+            Preparadas
+          </button>
+          <button
+            class="tab-btn"
+            [class.active]="activeTab() === 'TODAS'"
+            (click)="setTab('TODAS')">
+            Historial Completo
+          </button>
+        </div>
+
+        <div class="branch-filter flex-1">
+          <label class="filter-label">Sucursal:</label>
+          <select
+            class="form-control"
+            [ngModel]="selectedBranchId()"
+            (ngModelChange)="selectedBranchId.set($event); loadReservations()">
+            <option value="">-- Todas las sucursales --</option>
+            @for (b of branches(); track b.id) {
+              <option [value]="b.id">
+                {{ b.nombre }} ({{ b.ciudad }})
+              </option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reservations Table -->
+    <div class="card glass-card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>Listado de Reservas</h3>
+        <span class="badge badge-variant">{{ reservations().length }} reservas</span>
+      </div>
+      <div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Cliente</th>
+                <th>Sucursal</th>
+                <th>Fecha Esperada</th>
+                <th>Expiración</th>
+                <th class="text-end">Total (Bs.)</th>
+                <th class="text-center">Estado</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (isLoading()) {
+                <tr>
+                  <td colspan="8" class="text-center py-4">
+                    <div class="spinner"></div>
+                    <p class="text-muted mt-2">Cargando reservas...</p>
+                  </td>
+                </tr>
+              } @else if (reservations().length === 0) {
+                <tr>
+                  <td colspan="8" class="text-center py-4 text-muted">
+                    No hay reservas para mostrar con los filtros actuales.
+                  </td>
+                </tr>
+              } @else {
+                @for (res of reservations(); track res.id) {
+                  <tr>
+                    <td>
+                      <strong class="text-primary">{{ res.codigo }}</strong>
+                    </td>
+                    <td>
+                      <div class="client-info">
+                        <span class="font-medium">{{ res.cliente_nombre || 'Cliente' }}</span>
+                        <span class="text-muted text-xs">{{ res.cliente_email }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span>{{ res.sucursal_nombre }}</span>
+                    </td>
+                    <td>
+                      <span>{{ res.fecha_hora_esperada | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </td>
+                    <td>
+                      <span class="text-xs text-muted">{{ res.fecha_expiracion | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </td>
+                    <td class="text-end font-bold">
+                      {{ res.total_estimado | number:'1.2-2' }} Bs.
+                    </td>
+                    <td class="text-center">
+                      <span class="badge" [ngClass]="getStatusBadgeClass(res.estado)">
+                        {{ res.estado }}
+                      </span>
+                    </td>
+                    <td class="text-end actions-cell">
+                      <button
+                        class="btn btn-sm btn-secondary"
+                        (click)="openDetailModal(res)"
+                        title="Ver Detalle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Ver
+                      </button>
+
+                      <ng-container *appHasPermission="'reservas.update'">
+                        <button
+                          *ngIf="res.estado === 'PENDIENTE'"
+                          class="btn btn-sm btn-primary"
+                          (click)="prepareReservation(res)"
+                          [disabled]="isActionLoading()"
+                          title="Marcar como preparada">
+                          Preparar
+                        </button>
+
+                        <button
+                          *ngIf="res.estado === 'PREPARADA'"
+                          class="btn btn-sm btn-primary"
+                          (click)="pickupReservation(res)"
+                          [disabled]="isActionLoading()"
+                          title="Entregar al cliente">
+                          Entregar
+                        </button>
+                      </ng-container>
+
+                      <button
+                        *ngIf="res.estado === 'PENDIENTE'"
+                        class="btn btn-sm btn-danger"
+                        (click)="cancelReservation(res)"
+                        [disabled]="isActionLoading()"
+                        title="Cancelar reserva">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px">
+                          <line x1="18" y1="6" x2="6" y2="18"/>
+                          <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal Detalle de Reserva -->
+<div class="modal-backdrop" *ngIf="showDetailModal()">
+  <div class="modal-card modal-lg glass-card">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title">Detalle de Reserva: {{ selectedReservation()?.codigo }}</h3>
+        <span class="badge mt-1" [ngClass]="getStatusBadgeClass(selectedReservation()!.estado)">
+          {{ selectedReservation()?.estado }}
+        </span>
+      </div>
+      <button type="button" class="btn-close" (click)="closeDetailModal()">×</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedReservation() as res">
+      <!-- General metadata -->
+      <div class="summary-box mb-3">
+        <div><strong>Cliente:</strong> {{ res.cliente_nombre }} ({{ res.cliente_email }})</div>
+        <div><strong>Sucursal:</strong> {{ res.sucursal_nombre }} ({{ res.sucursal_ciudad }})</div>
+        <div><strong>Fecha Esperada:</strong> {{ res.fecha_hora_esperada | date:'dd/MM/yyyy HH:mm' }}</div>
+        <div><strong>Expiración:</strong> {{ res.fecha_expiracion | date:'dd/MM/yyyy HH:mm' }}</div>
+        <div *ngIf="res.nota"><strong>Nota:</strong> {{ res.nota }}</div>
+      </div>
+
+      <!-- Items table -->
+      <h4 class="mb-2 font-bold">Prendas Reservadas</h4>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Producto / Variante</th>
+              <th>SKU</th>
+              <th class="text-center">Cantidad</th>
+              <th class="text-end">Precio Unit.</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of res.detalles; track d.id) {
+              <tr>
+                <td>
+                  <div class="font-medium text-primary">{{ d.producto_nombre }}</div>
+                  <div class="text-muted text-xs">Talla: {{ d.talla }} | Color: {{ d.color }}</div>
+                </td>
+                <td><code>{{ d.variante_sku }}</code></td>
+                <td class="text-center font-bold">{{ d.cantidad }}</td>
+                <td class="text-end">{{ d.precio_unitario | number:'1.2-2' }} Bs.</td>
+                <td class="text-end font-bold">{{ d.subtotal | number:'1.2-2' }} Bs.</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="4" class="text-end">Total Estimado:</th>
+              <th class="text-end font-bold text-primary">{{ res.total_estimado | number:'1.2-2' }} Bs.</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="modal-actions mt-3">
+        <button type="button" class="btn btn-secondary" (click)="closeDetailModal()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

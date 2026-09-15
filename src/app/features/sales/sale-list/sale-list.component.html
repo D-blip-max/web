@@ -1,0 +1,333 @@
+<div class="module-layout">
+  <header class="navbar glass-card">
+    <div class="nav-brand">
+      <h1 class="page-title">Historial de Ventas</h1>
+      <p class="page-subtitle">Registro de transacciones presenciales y digitales</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/ventas/pos" class="btn btn-primary" *appHasPermission="'ventas.create'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        Terminal POS / Cobrar
+      </a>
+      <a routerLink="/ventas/reportes" class="btn btn-secondary" *appHasPermission="'ventas.reports'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        Reportes
+      </a>
+    </div>
+  </header>
+
+  <main class="module-content">
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    <!-- Filters Card -->
+    <div class="card glass-card mb-4">
+      <div class="filter-row">
+        <div class="filter-group flex-1">
+          <label class="filter-label">Sucursal:</label>
+          <select
+            class="form-control"
+            [ngModel]="selectedBranchId()"
+            (ngModelChange)="selectedBranchId.set($event); loadSales()">
+            <option value="">-- Todas las sucursales --</option>
+            @for (b of branches(); track b.id) {
+              <option [value]="b.id">
+                {{ b.nombre }} ({{ b.ciudad }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-group flex-1">
+          <label class="filter-label">Canal de Venta:</label>
+          <select
+            class="form-control"
+            [ngModel]="selectedType()"
+            (ngModelChange)="selectedType.set($event); loadSales()">
+            <option value="">-- Todos los canales --</option>
+            <option value="PRESENCIAL">Presencial (Mostrador)</option>
+            <option value="DIGITAL">Digital (App)</option>
+          </select>
+        </div>
+
+        <div class="filter-group flex-1">
+          <label class="filter-label">Estado:</label>
+          <select
+            class="form-control"
+            [ngModel]="selectedStatus()"
+            (ngModelChange)="selectedStatus.set($event); loadSales()">
+            <option value="">-- Todos los estados --</option>
+            <option value="COMPLETADA">Completada</option>
+            <option value="CANCELADA">Anulada / Cancelada</option>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn btn-secondary btn-sm" (click)="loadSales()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            Refrescar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales Table -->
+    <div class="card glass-card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3>Transacciones Registradas</h3>
+        <span class="badge badge-variant">{{ sales().length }} ventas</span>
+      </div>
+      <div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>N° Recibo</th>
+                <th>Fecha</th>
+                <th>Sucursal</th>
+                <th>Cliente / Cajero</th>
+                <th>Método de Pago</th>
+                <th class="text-end">Monto Total</th>
+                <th class="text-center">Estado</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (isLoading()) {
+                <tr>
+                  <td colspan="8" class="text-center py-4">
+                    <div class="spinner"></div>
+                    <p class="text-muted mt-2">Cargando ventas...</p>
+                  </td>
+                </tr>
+              } @else if (sales().length === 0) {
+                <tr>
+                  <td colspan="8" class="text-center py-4 text-muted">
+                    No se encontraron ventas con los filtros aplicados.
+                  </td>
+                </tr>
+              } @else {
+                @for (s of sales(); track s.id) {
+                  <tr>
+                    <td>
+                      <strong class="text-primary">{{ s.numero_recibo }}</strong>
+                      <span *ngIf="s.tipo === 'DIGITAL'" class="badge badge-variant text-xs ms-1">App</span>
+                    </td>
+                    <td>
+                      <span class="font-medium">{{ s.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </td>
+                    <td>
+                      <span>{{ s.sucursal_nombre }}</span>
+                    </td>
+                    <td>
+                      <div>
+                        <span class="font-medium">{{ s.cliente_nombre || 'Cliente Casual' }}</span>
+                        <small class="d-block text-muted text-xs" *ngIf="s.cajero_nombre">
+                          Atendido por: {{ s.cajero_nombre }}
+                        </small>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge badge-variant">
+                        {{ s.metodo_pago }}
+                      </span>
+                      <small *ngIf="s.referencia_pago" class="d-block text-muted text-xs">
+                        Ref: {{ s.referencia_pago }}
+                      </small>
+                    </td>
+                    <td class="text-end font-bold">
+                      {{ s.monto_total | number:'1.2-2' }} Bs.
+                    </td>
+                    <td class="text-center">
+                      <span
+                        class="badge"
+                        [class.badge-success]="s.estado === 'COMPLETADA'"
+                        [class.badge-danger]="s.estado === 'CANCELADA'">
+                        {{ s.estado }}
+                      </span>
+                    </td>
+                    <td class="text-end actions-cell">
+                      <button
+                        class="btn btn-sm btn-secondary"
+                        (click)="openDetailModal(s)"
+                        title="Ver Recibo / Detalle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Ver
+                      </button>
+
+                      <ng-container *appHasPermission="'ventas.cancel'">
+                        <button
+                          *ngIf="s.estado === 'COMPLETADA'"
+                          class="btn btn-sm btn-danger"
+                          (click)="openCancelModal(s)"
+                          title="Anular venta y devolver stock">
+                          Anular
+                        </button>
+                      </ng-container>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal Detalle / Recibo -->
+<div class="modal-backdrop" *ngIf="showDetailModal()">
+  <div class="modal-card receipt-modal glass-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Detalle de Venta</h3>
+      <button type="button" class="btn-close" (click)="closeDetailModal()">×</button>
+    </div>
+    <div class="modal-body p-4" *ngIf="selectedSale() as sale">
+      <div class="receipt-paper" id="printable-receipt">
+        <div class="text-center mb-3">
+          <h4 class="m-0 font-bold">FICCT STORE</h4>
+          <p class="text-muted text-xs m-0">{{ sale.sucursal_nombre }} ({{ sale.sucursal_ciudad }})</p>
+          <p class="text-muted text-xs m-0">Fecha: {{ sale.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+          <p class="font-bold mt-2">RECIBO: {{ sale.numero_recibo }}</p>
+          <span
+            class="badge"
+            [class.badge-success]="sale.estado === 'COMPLETADA'"
+            [class.badge-danger]="sale.estado === 'CANCELADA'">
+            {{ sale.estado }}
+          </span>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div *ngIf="sale.motivo_cancelacion" class="alert alert-error text-xs p-2 my-2">
+          <strong>Motivo Anulación:</strong> {{ sale.motivo_cancelacion }}
+        </div>
+
+        <div class="table-responsive my-2">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Cant</th>
+                <th>Descripción</th>
+                <th class="text-end">P.Unit</th>
+                <th class="text-end">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of sale.detalles; track item.id) {
+                <tr>
+                  <td>{{ item.cantidad }}</td>
+                  <td>
+                    {{ item.producto_nombre }}
+                    <small class="d-block text-muted">{{ item.talla }}/{{ item.color }}</small>
+                  </td>
+                  <td class="text-end">{{ item.precio_unitario | number:'1.2-2' }}</td>
+                  <td class="text-end font-bold">{{ item.subtotal | number:'1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-totals">
+          <div class="d-flex justify-content-between">
+            <span>TOTAL:</span>
+            <span class="font-bold">{{ sale.monto_total | number:'1.2-2' }} Bs.</span>
+          </div>
+          <div class="d-flex justify-content-between text-muted text-xs">
+            <span>Pago:</span>
+            <span>{{ sale.metodo_pago }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-muted text-xs" *ngIf="sale.monto_recibido">
+            <span>Monto Pagado:</span>
+            <span>{{ sale.monto_recibido | number:'1.2-2' }} Bs.</span>
+          </div>
+          <div class="d-flex justify-content-between text-muted text-xs" *ngIf="sale.cambio">
+            <span>Cambio / Vuelto:</span>
+            <span>{{ sale.cambio | number:'1.2-2' }} Bs.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions d-flex gap-2 mt-4">
+        <button type="button" class="btn btn-secondary w-50" (click)="printReceipt()">
+          Imprimir
+        </button>
+        <button type="button" class="btn btn-secondary w-50" (click)="closeDetailModal()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Anulación de Venta -->
+<div class="modal-backdrop" *ngIf="showCancelModal()">
+  <div class="modal-card glass-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Anular Venta: {{ saleToCancel()?.numero_recibo }}</h3>
+      <button type="button" class="btn-close" (click)="closeCancelModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="alert alert-error">
+        <strong>Atención:</strong> Al anular la venta, todas las prendas vendidas serán devueltas automáticamente al inventario de la sucursal.
+      </p>
+
+      <div class="form-group mb-3">
+        <label class="form-label">Motivo de la anulación *</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          placeholder="Ej: Devolución por prenda fallada, error en cobro..."
+          [(ngModel)]="cancelReason"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="closeCancelModal()">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="confirmCancelSale()"
+          [disabled]="!cancelReason.trim() || isCancelling()">
+          {{ isCancelling() ? 'Anulando...' : 'Confirmar Anulación' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

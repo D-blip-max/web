@@ -1,0 +1,117 @@
+.side-nav-offcanvas {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 288px;
+  height: 100vh;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  border-right: none;
+  border-top: none;
+  border-bottom: none;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-hover);
+  transform: translateX(100%);
+  transition: transform var(--transition-normal);
+}
+
+.side-nav-offcanvas.open {
+  transform: translateX(0);
+}
+
+.side-nav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.nav-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.btn-close-nav {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.btn-close-nav:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.side-nav-content {
+  flex: 1;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.nav-link i {
+  font-size: 1.2rem;
+}
+
+.nav-link:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-color);
+}
+
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-light);
+  border-color: rgba(217, 119, 6, 0.25);
+  font-weight: 600;
+}
+
+.nav-link.active i {
+  color: var(--accent);
+}
+
+.empty-nav {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 2rem 1rem;
+}

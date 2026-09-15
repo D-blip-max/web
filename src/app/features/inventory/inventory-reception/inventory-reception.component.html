@@ -1,0 +1,172 @@
+<div class="module-layout">
+  <header class="navbar glass-card">
+    <div class="nav-brand">
+      <h1 class="page-title">Recepción de Mercadería</h1>
+      <p class="page-subtitle">Registra el ingreso de productos y lotes a una sucursal</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/inventario" class="btn btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Volver a Inventario
+      </a>
+    </div>
+  </header>
+
+  <main class="module-content">
+    <!-- Alert notifications -->
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="receptionForm" (ngSubmit)="onSubmit()">
+      <div class="card glass-card mb-4">
+        <div class="card-header">
+          <h3>1. Datos Generales de Recepción</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Sucursal Destino *</label>
+              <select class="form-control" formControlName="sucursal_id" required>
+                <option value="" disabled>Seleccione una sucursal</option>
+                @for (b of branches(); track b.id) {
+                  <option [value]="b.id">
+                    {{ b.nombre }} ({{ b.ciudad }})
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group flex-1">
+              <label class="form-label">N° Factura / Guía / Referencia</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="factura"
+                placeholder="Ej: FAC-98765 o GUIA-012">
+            </div>
+
+            <div class="form-group flex-1">
+              <label class="form-label">Observaciones / Nota</label>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="nota"
+                placeholder="Ej: Lote temporada Verano, proveedor Altiplano">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items Section -->
+      <div class="card glass-card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <h3>2. Detalle de Variantes a Ingresar</h3>
+            <span class="text-muted text-xs">Total Unidades: <strong>{{ getTotalUnidades() }}</strong></span>
+          </div>
+          <button type="button" class="btn btn-sm btn-secondary" (click)="addItem()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Agregar Variante
+          </button>
+        </div>
+        <div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Variante de Producto *</th>
+                  <th style="width: 160px;" class="text-center">Cantidad *</th>
+                  <th style="width: 60px;" class="text-center">Quitar</th>
+                </tr>
+              </thead>
+              <tbody formArrayName="productos">
+                @for (itemGroup of productosArray.controls; track $index; let i = $index) {
+                  <tr [formGroupName]="i">
+                    <td class="text-muted text-center">{{ i + 1 }}</td>
+                    <td>
+                      <select class="form-control" formControlName="variante_id" required>
+                        <option value="" disabled>Seleccione variante...</option>
+                        @for (opt of variantOptions(); track opt.id) {
+                          <option [value]="opt.id">
+                            {{ opt.label }}
+                          </option>
+                        }
+                      </select>
+                    </td>
+                    <td class="text-center">
+                      <input
+                        type="number"
+                        min="1"
+                        class="form-control text-center font-bold"
+                        formControlName="cantidad"
+                        required>
+                    </td>
+                    <td class="text-center">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-danger"
+                        (click)="removeItem(i)"
+                        [disabled]="productosArray.length === 1"
+                        title="Quitar fila">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center p-3">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="addItem()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Agregar Línea
+          </button>
+          <div class="d-flex gap-2">
+            <a routerLink="/inventario" class="btn btn-secondary">
+              Cancelar
+            </a>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="receptionForm.invalid || isSubmitting() || getTotalUnidades() === 0">
+              {{ isSubmitting() ? 'Procesando...' : 'Confirmar Recepción' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+
+  </main>
+</div>

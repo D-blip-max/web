@@ -1,0 +1,195 @@
+<div class="module-layout">
+  <header class="navbar glass-card">
+    <div class="nav-brand">
+      <span class="brand-title">{{ isEditing() ? 'Editar Producto' : 'Nuevo Producto' }}</span>
+    </div>
+    <div class="nav-actions">
+      <a routerLink="/productos" class="btn btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        <span>Volver al Catálogo</span>
+      </a>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="alert alert-error">
+      <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando información del producto...</p>
+    </div>
+  } @else {
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+      <div class="form-grid">
+        <!-- Columna Izquierda: Datos Principales -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <h3>Información General</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="nombre">Nombre del Producto *</label>
+              <input id="nombre" type="text" formControlName="nombre" class="form-control" placeholder="Ej. Camisa Oxford Clásica" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="categoria_id">Categoría *</label>
+                <select id="categoria_id" formControlName="categoria_id" class="form-control">
+                  <option value="">Seleccionar categoría</option>
+                  @for (cat of categories(); track cat.id) {
+                    <option [value]="cat.id">{{ cat.nombre }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="precio_base">Precio Base (Bs.) *</label>
+                <input id="precio_base" type="number" step="0.01" min="0.01" formControlName="precio_base" class="form-control" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="temporada">Temporada</label>
+                <input id="temporada" type="text" formControlName="temporada" list="temporadasList" class="form-control" placeholder="Ej. Primavera-Verano 2025" />
+                <datalist id="temporadasList">
+                  @for (s of seasons(); track s.id) {
+                    <option [value]="s.nombre">{{ s.nombre }} ({{ s.anio }})</option>
+                  }
+                </datalist>
+              </div>
+
+              <div class="form-group">
+                <label for="proveedor">Proveedor</label>
+                <input id="proveedor" type="text" formControlName="proveedor" list="proveedoresList" class="form-control" placeholder="Ej. Textiles del Valle" />
+                <datalist id="proveedoresList">
+                  @for (p of suppliers(); track p.id) {
+                    <option [value]="p.nombre">{{ p.nombre }}</option>
+                  }
+                </datalist>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="imagen_url">URL de Imagen (Opcional)</label>
+              <input id="imagen_url" type="text" formControlName="imagen_url" class="form-control" placeholder="https://ejemplo.com/foto.jpg" />
+            </div>
+
+            <div class="form-group">
+              <label for="descripcion">Descripción</label>
+              <textarea id="descripcion" formControlName="descripcion" class="form-control" rows="3" placeholder="Detalles de la tela, corte, etc."></textarea>
+            </div>
+
+            <div class="form-check">
+              <input id="activo" type="checkbox" formControlName="activo" />
+              <label for="activo">Producto Activo para la Venta</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Variantes (Tallas y Colores) -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <h3>Tallas y Colores (Variantes)</h3>
+          </div>
+          <div class="card-body">
+            <!-- Formulario para agregar variante -->
+            <div class="add-variant-box">
+              <h4>Agregar Variante</h4>
+              <div class="variant-inputs-grid">
+                <div class="form-group">
+                  <label>Talla</label>
+                  <select [(ngModel)]="newVariantTalla" [ngModelOptions]="{standalone: true}" class="form-control">
+                    @for (t of tallasDisponibles; track t) {
+                      <option [value]="t">{{ t }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Color *</label>
+                  <input type="text" [(ngModel)]="newVariantColor" [ngModelOptions]="{standalone: true}" class="form-control" placeholder="Ej. Azul Marino" />
+                </div>
+
+                <div class="form-group">
+                  <label>Precio Extra (Bs.)</label>
+                  <input type="number" step="0.01" min="0" [(ngModel)]="newVariantPrecioExtra" [ngModelOptions]="{standalone: true}" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                  <label>SKU (Opcional)</label>
+                  <input type="text" [(ngModel)]="newVariantSku" [ngModelOptions]="{standalone: true}" class="form-control" placeholder="Autogenerado" />
+                </div>
+              </div>
+
+              <button type="button" (click)="addVariantRow()" class="btn btn-secondary btn-sm mt-2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Agregar Variante
+              </button>
+            </div>
+
+            <!-- Lista de variantes configuradas -->
+            <div class="variants-table-wrapper mt-3">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Talla</th>
+                    <th>Color</th>
+                    <th>Extra</th>
+                    <th>SKU</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (v of variants(); track $index) {
+                    <tr>
+                      <td><span class="badge badge-variant">{{ v.talla }}</span></td>
+                      <td>{{ v.color }}</td>
+                      <td>+Bs. {{ v.precio_extra | number:'1.2-2' }}</td>
+                      <td><code>{{ v.sku || 'Autogenerado' }}</code></td>
+                      <td>
+                        <button type="button" (click)="removeVariant($index, v)" class="btn btn-sm btn-danger" title="Eliminar">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="5" class="text-center text-muted py-3">No hay variantes agregadas aún.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions glass-card mt-4">
+        <a routerLink="/productos" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" [disabled]="productForm.invalid || isSaving()" class="btn btn-primary">
+          {{ isSaving() ? 'Guardando...' : (isEditing() ? 'Guardar Cambios' : 'Crear Producto') }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

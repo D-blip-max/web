@@ -1,0 +1,89 @@
+<div class="auth-container">
+  <div class="auth-card glass-card">
+    <div class="auth-header">
+      <div class="brand-logo-container">
+        <img src="/logo.png" alt="FICCT STORE" class="brand-logo-img" />
+      </div>
+      <h1 class="auth-title">Crear una cuenta</h1>
+      <p class="auth-subtitle">Regístrate para acceder al panel de control</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label class="form-label" for="full_name">Nombre completo</label>
+        <input
+          id="full_name"
+          type="text"
+          formControlName="full_name"
+          class="form-input"
+          [class.is-invalid]="isFieldInvalid('full_name')"
+          placeholder="Juan Pérez"
+          autocomplete="name"
+        />
+        @if (isFieldInvalid('full_name')) {
+          <span class="error-text">El nombre debe tener al menos 2 caracteres</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Correo electrónico</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="form-input"
+          [class.is-invalid]="isFieldInvalid('email')"
+          placeholder="tu@email.com"
+          autocomplete="email"
+        />
+        @if (isFieldInvalid('email')) {
+          <span class="error-text">Ingresa un correo electrónico válido</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Contraseña</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          class="form-input"
+          [class.is-invalid]="isFieldInvalid('password')"
+          placeholder="Mínimo 8 caracteres"
+          autocomplete="new-password"
+        />
+        @if (isFieldInvalid('password')) {
+          <span class="error-text">La contraseña debe tener al menos 8 caracteres</span>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary btn-full mt-4"
+        [disabled]="isLoading() || registerForm.invalid"
+      >
+        @if (isLoading()) {
+          <div class="spinner"></div>
+          <span>Creando cuenta...</span>
+        } @else {
+          <span>Crear cuenta</span>
+        }
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>¿Ya tienes una cuenta? <a routerLink="/auth/login">Inicia sesión</a></p>
+    </div>
+  </div>
+</div>

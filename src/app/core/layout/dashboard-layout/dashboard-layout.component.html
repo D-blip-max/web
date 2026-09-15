@@ -1,0 +1,13 @@
+<div class="layout-container">
+  <app-topbar (toggleNav)="toggleNav()"></app-topbar>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <app-side-nav [isOpen]="isNavOpen()" (closeNav)="closeNav()"></app-side-nav>
+
+  @if (isNavOpen()) {
+    <div class="nav-backdrop" (click)="closeNav()"></div>
+  }
+</div>

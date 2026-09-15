@@ -1,0 +1,178 @@
+<div class="module-layout">
+  <header class="navbar glass-card">
+    <div class="nav-brand">
+      <span class="brand-title">Catálogo de Productos</span>
+    </div>
+    <div class="nav-actions">
+      <a *appHasPermission="'productos.create'" routerLink="/productos/nuevo" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        <span>Nuevo Producto</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Filtros -->
+  <div class="filters-card glass-card mb-4">
+    <div class="filters-grid">
+      <div class="filter-item search-box">
+        <label>Buscar</label>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="onFilterChange()"
+          class="form-control"
+          placeholder="Nombre o descripción..."
+        />
+      </div>
+
+      <div class="filter-item">
+        <label>Categoría</label>
+        <select [(ngModel)]="selectedCategoryId" (change)="onFilterChange()" class="form-control">
+          <option value="">Todas las categorías</option>
+          @for (cat of categories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label>Estado</label>
+        <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="form-control">
+          <option value="">Todos</option>
+          <option value="active">Solo Activos</option>
+          <option value="inactive">Solo Inactivos</option>
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <button (click)="onFilterChange()" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          Filtrar
+        </button>
+        <button (click)="clearFilters()" class="btn btn-secondary btn-sm">Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="module-content">
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <div class="card glass-card">
+      <div class="card-header">
+        <h3>Productos Disponibles</h3>
+      </div>
+
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando catálogo...</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Precio Base</th>
+                <th>Variantes</th>
+                <th>Temporada / Proveedor</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (prod of products(); track prod.id) {
+                <tr>
+                  <td>
+                    <strong class="text-primary">{{ prod.nombre }}</strong>
+                    @if (prod.descripcion) {
+                      <div class="text-muted text-xs">{{ prod.descripcion }}</div>
+                    }
+                  </td>
+                  <td>{{ prod.categoria?.nombre || '—' }}</td>
+                  <td><strong>Bs. {{ prod.precio_base | number:'1.2-2' }}</strong></td>
+                  <td>
+                    <div class="variant-tags">
+                      @for (v of prod.variantes; track v.id) {
+                        <span class="badge badge-variant" [title]="'SKU: ' + v.sku + ' (+Bs. ' + v.precio_extra + ')'">
+                          {{ v.talla }} - {{ v.color }}
+                        </span>
+                      } @empty {
+                        <span class="text-muted text-xs">Sin variantes</span>
+                      }
+                    </div>
+                  </td>
+                  <td>
+                    <div class="text-xs">{{ prod.temporada || 'General' }}</div>
+                    <div class="text-xs text-muted">{{ prod.proveedor || 'Sin proveedor' }}</div>
+                  </td>
+                  <td>
+                    <span [class]="prod.activo ? 'badge badge-success' : 'badge badge-danger'">
+                      {{ prod.activo ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td class="action-cells">
+                    <a
+                      *appHasPermission="'productos.update'"
+                      [routerLink]="['/productos', prod.id, 'editar']"
+                      class="btn btn-sm btn-secondary"
+                      title="Editar Producto y Variantes"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                      Editar
+                    </a>
+                    <button
+                      *appHasPermission="'productos.delete'"
+                      (click)="toggleActivo(prod)"
+                      [class]="prod.activo ? 'btn btn-sm btn-danger' : 'btn btn-sm btn-secondary'"
+                      [title]="prod.activo ? 'Desactivar' : 'Activar'"
+                    >
+                      @if (prod.activo) {
+                        Desactivar
+                      } @else {
+                        Activar
+                      }
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">No se encontraron productos con los filtros seleccionados.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </main>
+</div>

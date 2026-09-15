@@ -1,0 +1,36 @@
+<aside class="side-nav-offcanvas glass-card" [class.open]="isOpen">
+  <div class="side-nav-header">
+    <div class="nav-title">
+      <i class="bi bi-grid-fill text-primary"></i>
+      <span>Módulos de la App</span>
+    </div>
+    <button (click)="onClose()" class="btn-close-nav" title="Cerrar menú">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="side-nav-content">
+    @if (visibleModules().length === 0) {
+      <div class="empty-nav">
+        <p>No tienes acceso a ningún módulo disponible.</p>
+      </div>
+    } @else {
+      <ul class="nav-list">
+        @for (module of visibleModules(); track module.route) {
+          <li class="nav-item">
+            <a
+              [routerLink]="module.route"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: module.route === '/dashboard' }"
+              (click)="onModuleClick()"
+              class="nav-link"
+            >
+              <i class="bi" [ngClass]="module.icon"></i>
+              <span>{{ module.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</aside>

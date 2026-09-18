@@ -1,154 +1,500 @@
-<div class="dashboard-layout">
-  <!-- Main Container -->
-  <main class="dashboard-content">
-    <div class="welcome-banner glass-card">
-      <div class="banner-text">
-        <h2>Hola, {{ currentUser()?.full_name }}</h2>
-        <p>Sesión iniciada correctamente a través de la API segura con FastAPI &amp; PostgreSQL.</p>
+<div class="dashboard-container">
+  <!-- ── Top Header & Control Bar ──────────────────────────────────────── -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <div class="greeting-row">
+        <h1 class="page-title">{{ getGreeting() }}, {{ currentUser()?.full_name?.split(' ')?.at(0) || 'Usuario' }}</h1>
+        <span class="role-pill" [ngClass]="getRoleBadgeClass(currentUser()?.role?.name || '')">
+          {{ currentUser()?.role?.name || 'Cliente' }}
+        </span>
       </div>
-      <span class="badge badge-success">Sesión Activa</span>
+      <p class="subtitle">
+        Panel de control y rendimiento comercial en tiempo real · {{ lastUpdated() | date:'EEEE, d MMMM, HH:mm' }}
+      </p>
     </div>
 
-    @if (successMessage()) {
-      <div class="alert alert-success">
-        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-          <polyline points="22 4 12 14.01 9 11.01"/>
+    <div class="header-actions">
+      <!-- Selector de Sucursal -->
+      <div class="branch-filter-box">
+        <svg class="filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
         </svg>
-        <span>{{ successMessage() }}</span>
+        <select class="branch-select" [value]="selectedBranchId()" (change)="onBranchFilterChange($event)">
+          <option value="">Todas las Sucursales (Global)</option>
+          @for (b of branches(); track b.id) {
+            <option [value]="b.id">{{ b.nombre }} ({{ b.ciudad }})</option>
+          }
+        </select>
       </div>
-    }
 
-    @if (errorMessage()) {
-      <div class="alert alert-error">
-        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-          <line x1="12" y1="9" x2="12" y2="13"/>
-          <line x1="12" y1="17" x2="12.01" y2="17"/>
+      <!-- Botón Refrescar -->
+      <button class="btn-action-icon" (click)="loadDashboardData()" [title]="'Actualizar datos en vivo'" [disabled]="isRefreshing()">
+        <svg [class.spin]="isRefreshing()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
         </svg>
-        <span>{{ errorMessage() }}</span>
-      </div>
-    }
+      </button>
 
-    <div class="grid-layout">
-      <!-- Profile Card -->
-      <div class="card glass-card">
-        <div class="card-header">
+      <!-- Botón Mi Cuenta -->
+      <button class="btn-account" (click)="openProfileModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span>Mi Cuenta</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Banner de Acción Rápida para Cajero (Hero Banner) ──────────────── -->
+  @if (userRole() === 'cajero') {
+    <section class="cajero-hero-card">
+      <div class="hero-info">
+        <div class="hero-tag">Mostrador &amp; Ventas</div>
+        <h2>Punto de Venta Disponible</h2>
+        <p>Inicia una nueva transacción, atiende pedidos rápidos o realiza el cobro de reservas Click &amp; Collect.</p>
+      </div>
+      <div class="hero-actions">
+        <a routerLink="/pos" class="btn-hero-pos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          Abrir Terminal POS
+        </a>
+      </div>
+    </section>
+  }
+
+  <!-- ── 4 KPI Cards Principales ────────────────────────────────────────── -->
+  <section class="kpi-grid">
+    <!-- Card 1: Facturación Total -->
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Facturación Total</span>
+        <div class="kpi-icon-box icon-emerald">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value font-tabular">
+          Bs {{ (summary()?.ingresos_totales || 0) | number:'1.2-2' }}
+        </div>
+        <div class="kpi-footer">
+          <span class="kpi-badge badge-positive">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="18 15 12 9 6 15"/>
+            </svg>
+            En línea
+          </span>
+          <span class="kpi-context">Ticket prom: Bs {{ (summary()?.ticket_promedio || 0) | number:'1.1-1' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Volumen de Transacciones -->
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Ventas Registradas</span>
+        <div class="kpi-icon-box icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"/>
+            <circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value font-tabular">
+          {{ (summary()?.total_ventas || 0) | number }}
+        </div>
+        <div class="kpi-footer">
+          <span class="kpi-subtext">
+            Bs {{ (summary()?.ventas_efectivo || 0) | number:'1.0-0' }} Efectivo · Bs {{ (summary()?.ventas_qr || 0) | number:'1.0-0' }} QR · Bs {{ (summary()?.ventas_tarjeta || 0) | number:'1.0-0' }} Tarjeta
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Estado de Inventario & Alertas -->
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Salud del Inventario</span>
+        <div class="kpi-icon-box" [ngClass]="criticalStockCount() > 0 ? 'icon-rose' : 'icon-amber'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value font-tabular">
+          @if (criticalStockCount() > 0) {
+            <span class="text-danger">{{ criticalStockCount() }} críticos</span>
+          } @else {
+            <span class="text-success">Óptimo</span>
+          }
+        </div>
+        <div class="kpi-footer">
+          <span class="kpi-context">
+            {{ stockAlerts().length }} variantes bajo umbral mínimo
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Reservas Omnicanal -->
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Reservas (Click &amp; Collect)</span>
+        <div class="kpi-icon-box icon-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value font-tabular">
+          {{ recentReservations().length }}
+        </div>
+        <div class="kpi-footer">
+          <span class="kpi-context">
+            {{ pendingReservationsCount() }} por preparar · {{ readyReservationsCount() }} listas para entrega
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Main Analytical Section (2 Columns) ────────────────────────────── -->
+  <section class="analytical-grid">
+    <!-- Métodos de Pago & Desglose de Caja -->
+    <div class="panel-card">
+      <div class="panel-header">
+        <div>
+          <h3>Desglose de Medios de Pago</h3>
+          <p class="panel-subtitle">Distribución porcentual sobre el volumen total de transacciones</p>
+        </div>
+      </div>
+
+      <div class="payment-metrics">
+        <!-- Barra de Progreso Multi-Segmentada -->
+        <div class="progress-stacked">
+          <div class="bar-segment bar-efectivo" [style.width.%]="paymentBreakdown().efectivoPct" [title]="'Efectivo: ' + paymentBreakdown().efectivoPct + '%'"></div>
+          <div class="bar-segment bar-qr" [style.width.%]="paymentBreakdown().qrPct" [title]="'QR: ' + paymentBreakdown().qrPct + '%'"></div>
+          <div class="bar-segment bar-tarjeta" [style.width.%]="paymentBreakdown().tarjetaPct" [title]="'Tarjeta: ' + paymentBreakdown().tarjetaPct + '%'"></div>
+        </div>
+
+        <div class="payment-legend-grid">
+          <div class="legend-item">
+            <div class="legend-dot dot-efectivo"></div>
+            <div class="legend-info">
+              <span class="legend-title">Efectivo</span>
+              <strong class="font-tabular">Bs {{ paymentBreakdown().efectivoTotal | number:'1.2-2' }} ({{ paymentBreakdown().efectivoPct }}%)</strong>
+            </div>
+          </div>
+
+          <div class="legend-item">
+            <div class="legend-dot dot-qr"></div>
+            <div class="legend-info">
+              <span class="legend-title">Pago QR</span>
+              <strong class="font-tabular">Bs {{ paymentBreakdown().qrTotal | number:'1.2-2' }} ({{ paymentBreakdown().qrPct }}%)</strong>
+            </div>
+          </div>
+
+          <div class="legend-item">
+            <div class="legend-dot dot-tarjeta"></div>
+            <div class="legend-info">
+              <span class="legend-title">Tarjeta Débito/Crédito</span>
+              <strong class="font-tabular">Bs {{ paymentBreakdown().tarjetaTotal | number:'1.2-2' }} ({{ paymentBreakdown().tarjetaPct }}%)</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accesos Rápidos según Rol -->
+      <div class="quick-actions-bar">
+        <span class="quick-title">Accesos Rápidos:</span>
+        <div class="quick-buttons">
+          @if (userRole() === 'admin') {
+            <a routerLink="/products/new" class="btn-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              Nuevo Producto
+            </a>
+            <a routerLink="/sales/reports" class="btn-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Reporte Financiero
+            </a>
+            <a routerLink="/roles" class="btn-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Roles &amp; Permisos
+            </a>
+          } @else if (userRole() === 'encargado') {
+            <a routerLink="/inventory/reception" class="btn-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Recepción de Stock
+            </a>
+            <a routerLink="/inventory/movements" class="btn-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Auditoría Kardex
+            </a>
+            <a routerLink="/reservations" class="btn-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Gestionar Reservas
+            </a>
+          } @else {
+            <a routerLink="/pos" class="btn-chip btn-chip-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+              Ir al POS
+            </a>
+            <a routerLink="/reservations" class="btn-chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              Entregar Reserva
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 5 Productos Más Vendidos -->
+    <div class="panel-card">
+      <div class="panel-header">
+        <div>
+          <h3>Top Productos Más Vendidos</h3>
+          <p class="panel-subtitle">Ranking por rotación e ingresos generados</p>
+        </div>
+        <a routerLink="/sales/reports" class="link-more">Ver todos →</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Producto &amp; Variante</th>
+              <th class="text-right">Unidades</th>
+              <th class="text-right">Ingresos</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of topProducts(); track p.variante_sku; let i = $index) {
+              <tr>
+                <td>
+                  <div class="product-cell">
+                    <span class="rank-index">#{{ i + 1 }}</span>
+                    <div>
+                      <strong class="product-name">{{ p.producto_nombre }}</strong>
+                      <span class="product-sku font-mono text-dim">{{ p.variante_sku }} ({{ p.talla }} / {{ p.color }})</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-right font-tabular font-medium">{{ p.unidades_vendidas }} uds</td>
+                <td class="text-right font-tabular font-bold text-accent">Bs {{ p.ingresos_generados | number:'1.2-2' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3" class="text-center text-dim py-4">No hay registros de ventas para esta sucursal</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Bottom Grid: Últimas Ventas & Alertas de Inventario / Reservas ──── -->
+  <section class="operational-grid">
+    <!-- Últimas Transacciones en Vivo -->
+    <div class="panel-card">
+      <div class="panel-header">
+        <div>
+          <h3>Últimas Transacciones Registradas</h3>
+          <p class="panel-subtitle">Auditoría en tiempo real de ventas presenciales y cobros</p>
+        </div>
+        <a routerLink="/sales" class="link-more">Historial completo →</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Recibo / Fecha</th>
+              <th>Sucursal</th>
+              <th>Método</th>
+              <th class="text-right">Total</th>
+              <th class="text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of recentSales(); track s.id) {
+              <tr>
+                <td>
+                  <span class="font-mono font-bold">{{ s.numero_recibo }}</span>
+                  <div class="text-dim text-xs">{{ s.created_at | date:'shortTime' }} · {{ s.tipo }}</div>
+                </td>
+                <td>
+                  <span class="text-sm">{{ s.sucursal_nombre || 'Sede Central' }}</span>
+                </td>
+                <td>
+                  <span class="badge-payment" [attr.data-method]="s.metodo_pago">{{ s.metodo_pago }}</span>
+                </td>
+                <td class="text-right font-tabular font-bold">
+                  Bs {{ s.monto_total | number:'1.2-2' }}
+                </td>
+                <td class="text-center">
+                  <span class="status-pill" [ngClass]="getStatusClass(s.estado)">{{ s.estado }}</span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center text-dim py-4">No se han realizado ventas recientes</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Alertas de Stock & Reservas por Preparar -->
+    <div class="panel-card">
+      <div class="panel-header">
+        <div>
+          <h3>Alertas Operativas &amp; Reservas</h3>
+          <p class="panel-subtitle">Ítems que requieren atención inmediata en tienda</p>
+        </div>
+      </div>
+
+      <div class="alerts-container">
+        <!-- Stock Crítico -->
+        @if (stockAlerts().length > 0) {
+          <div class="alert-section">
+            <h4 class="section-label text-danger">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-inline">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              Stock Bajo / Crítico ({{ stockAlerts().length }})
+            </h4>
+            <div class="alert-cards-list">
+              @for (a of stockAlerts().slice(0, 3); track a.inventario_id) {
+                <div class="alert-item" [class.alert-item-critical]="a.nivel === 'CRITICO'">
+                  <div class="alert-item-info">
+                    <strong>{{ a.producto_nombre }}</strong>
+                    <span class="text-xs text-dim font-mono">{{ a.variante_sku }} · {{ a.sucursal }}</span>
+                  </div>
+                  <div class="alert-item-stock">
+                    <span class="stock-badge font-tabular" [class.badge-crit]="a.nivel === 'CRITICO'">
+                      {{ a.stock_disponible }} / {{ a.stock_minimo }} min
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Reservas Pendientes de Preparación -->
+        <div class="alert-section">
+          <h4 class="section-label text-purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-inline">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+            </svg>
+            Reservas Click &amp; Collect
+          </h4>
+          <div class="reservations-list">
+            @for (r of recentReservations().slice(0, 3); track r.id) {
+              <div class="reservation-item">
+                <div class="reservation-info">
+                  <span class="font-mono font-bold text-accent">{{ r.codigo }}</span>
+                  <span class="text-xs text-dim">{{ r.cliente_nombre || 'Cliente' }} · Bs {{ r.total_estimado | number:'1.2-2' }}</span>
+                </div>
+                <div class="reservation-action">
+                  <span class="status-pill text-xs" [ngClass]="getStatusClass(r.estado)">{{ r.estado }}</span>
+                  @if (r.estado === 'PENDIENTE' && (userRole() === 'admin' || userRole() === 'encargado')) {
+                    <button class="btn-micro" (click)="prepareReservation(r.id)">Preparar</button>
+                  }
+                </div>
+              </div>
+            } @empty {
+              <p class="text-xs text-dim">No hay reservas pendientes en esta sede.</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Modal de Mi Cuenta & Perfil (Limpio y No Invasivo) ─────────────── -->
+  @if (showProfileModal()) {
+    <div class="modal-backdrop" (click)="closeProfileModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
           <h3>
-            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
-            Datos de la Cuenta
+            Mi Cuenta &amp; Seguridad
           </h3>
-          <button (click)="toggleEdit()" class="btn btn-secondary btn-sm">
-            @if (isEditing()) {
-              Cancelar
-            } @else {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-              Editar
-            }
-          </button>
+          <button class="btn-close" (click)="closeProfileModal()">✕</button>
         </div>
 
-        @if (!isEditing()) {
-          <div class="profile-details">
-            <div class="detail-row">
-              <span class="detail-label">Nombre Completo:</span>
-              <span class="detail-value font-medium">{{ currentUser()?.full_name }}</span>
+        <div class="modal-body">
+          @if (profileSuccess()) {
+            <div class="alert alert-success">{{ profileSuccess() }}</div>
+          }
+          @if (profileError()) {
+            <div class="alert alert-error">{{ profileError() }}</div>
+          }
+
+          <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
+            <div class="profile-info-grid">
+              <div class="info-block">
+                <label>Correo Electrónico</label>
+                <div class="info-value font-mono">{{ currentUser()?.email }}</div>
+              </div>
+
+              <div class="info-block">
+                <label>Rol Asignado</label>
+                <div><span class="role-pill" [ngClass]="getRoleBadgeClass(currentUser()?.role?.name || '')">{{ currentUser()?.role?.name }}</span></div>
+              </div>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Correo Electrónico:</span>
-              <span class="detail-value font-mono">{{ currentUser()?.email }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Rol Asignado:</span>
-              <span class="badge badge-primary">{{ currentUser()?.role?.name || 'Sin rol' }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">ID de Usuario (UUID):</span>
-              <span class="detail-value font-mono text-dim">{{ currentUser()?.id }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Estado:</span>
-              <span class="badge badge-success">Activo</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Fecha de Registro:</span>
-              <span class="detail-value text-dim">{{ currentUser()?.created_at | date:'medium' }}</span>
-            </div>
-          </div>
-        } @else {
-          <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" class="edit-form">
-            <div class="form-group">
-              <label class="form-label" for="edit_full_name">Nombre completo</label>
+
+            <div class="form-group" style="margin-top: 1rem;">
+              <label class="form-label" for="full_name">Nombre Completo</label>
               <input
-                id="edit_full_name"
+                id="full_name"
                 type="text"
                 formControlName="full_name"
                 class="form-input"
-                placeholder="Nombre completo"
+                placeholder="Tu nombre completo"
               />
             </div>
-            <button type="submit" class="btn btn-primary" [disabled]="isSaving() || profileForm.invalid">
-              @if (isSaving()) {
-                <div class="spinner"></div>
-                <span>Guardando...</span>
-              } @else {
-                <span>Guardar Cambios</span>
-              }
-            </button>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="closeProfileModal()">Cerrar</button>
+              <button type="submit" class="btn btn-primary" [disabled]="isSavingProfile() || profileForm.invalid">
+                @if (isSavingProfile()) {
+                  <span>Guardando...</span>
+                } @else {
+                  <span>Guardar Cambios</span>
+                }
+              </button>
+            </div>
           </form>
-        }
-      </div>
-
-      <!-- Security & Token Information Card -->
-      <div class="card glass-card">
-        <div class="card-header">
-          <h3>
-            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-            Seguridad (JWT)
-          </h3>
-          <span class="badge badge-primary">Algoritmo HS256</span>
-        </div>
-
-        <div class="token-info">
-          <p class="token-description">
-            Tu cliente web almacena el Access Token firmado por el backend. Los interceptores inyectan el encabezado <code>Authorization: Bearer</code> en cada petición.
-          </p>
-
-          <div class="json-box">
-            <pre>{{ getTokenInfo() | json }}</pre>
-          </div>
-
-          <div class="security-meta">
-            <div class="meta-item">
-              <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-              <div>
-                <strong>Tokens en Lista Negra</strong>
-                <p class="text-dim">Al hacer logout, el identificador único <code>jti</code> es revocado en PostgreSQL.</p>
-              </div>
-            </div>
-            <div class="meta-item">
-              <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="23 4 23 10 17 10"/>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-              </svg>
-              <div>
-                <strong>Auto-renovación</strong>
-                <p class="text-dim">El interceptor renueva el access token ante respuestas 401 usando el refresh token.</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
-  </main>
+  }
 </div>

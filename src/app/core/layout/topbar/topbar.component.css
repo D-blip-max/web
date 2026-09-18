@@ -148,6 +148,23 @@
   }
 
   .topbar {
-    padding: 0 1rem;
+    padding: 0 0.75rem;
   }
 }
+
+@media (max-width: 480px) {
+  .user-name {
+    display: none;
+  }
+
+  .user-profile {
+    padding: 0.25rem;
+    border: none;
+    background: transparent;
+  }
+
+  .btn-icon {
+    padding: 0.4rem 0.5rem;
+  }
+}
+

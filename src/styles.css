@@ -450,3 +450,182 @@ select.form-control {
 .mt-4 { margin-top: 1.5rem; }
 .mt-2 { margin-top: 0.5rem; }
 
+/* ── Global Responsive Media Queries ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page-header,
+  .navbar,
+  .module-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 1rem;
+  }
+
+  .header-actions,
+  .nav-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .header-actions .btn,
+  .nav-actions .btn {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .filter-row,
+  .filters-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .filter-row > *,
+  .flex-1,
+  .flex-2 {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  .grid-layout,
+  .form-grid,
+  .two-column-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-md);
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.825rem;
+    white-space: nowrap;
+  }
+
+  .actions-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .modal-card,
+  .dialog-card {
+    max-width: 95vw !important;
+    margin: 0.75rem auto;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 0.9rem;
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .page-title {
+    font-size: 1.25rem !important;
+  }
+
+  .card,
+  .glass-card {
+    padding: 1rem;
+  }
+}
+
+/* ── Print Styles (Recibos / Comprobantes POS) ────────────────────────────── */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print,
+  .modal-header,
+  .modal-actions,
+  .btn,
+  .btn-close,
+  .navbar,
+  .side-nav-offcanvas,
+  .top-nav,
+  header,
+  aside,
+  nav,
+  .pos-grid,
+  .catalog-column,
+  .cart-column {
+    display: none !important;
+  }
+
+  .modal-backdrop {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .modal-card,
+  .receipt-modal {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .modal-body {
+    padding: 0 !important;
+  }
+
+  #printable-receipt,
+  .receipt-paper {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px dashed #888888 !important;
+    box-shadow: none !important;
+    max-width: 380px !important;
+    margin: 0 auto !important;
+    padding: 1.25rem !important;
+    page-break-inside: avoid;
+  }
+
+  #printable-receipt *,
+  .receipt-paper * {
+    color: #000000 !important;
+    background: transparent !important;
+  }
+
+  .receipt-divider {
+    border-bottom: 1px dashed #666666 !important;
+    margin: 0.5rem 0 !important;
+  }
+
+  .data-table,
+  .data-table th,
+  .data-table td {
+    color: #000000 !important;
+    border-color: #DDDDDD !important;
+    padding: 0.35rem 0.5rem !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+
+

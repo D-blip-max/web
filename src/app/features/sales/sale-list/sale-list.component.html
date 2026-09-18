@@ -210,7 +210,7 @@
 <!-- Modal Detalle / Recibo -->
 <div class="modal-backdrop" *ngIf="showDetailModal()">
   <div class="modal-card receipt-modal glass-card">
-    <div class="modal-header">
+    <div class="modal-header no-print">
       <h3 class="modal-title">Detalle de Venta</h3>
       <button type="button" class="btn-close" (click)="closeDetailModal()">×</button>
     </div>
@@ -283,7 +283,7 @@
         </div>
       </div>
 
-      <div class="modal-actions d-flex gap-2 mt-4">
+      <div class="modal-actions d-flex gap-2 mt-4 no-print">
         <button type="button" class="btn btn-secondary w-50" (click)="printReceipt()">
           Imprimir
         </button>

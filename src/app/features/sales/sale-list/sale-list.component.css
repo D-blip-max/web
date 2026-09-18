@@ -157,18 +157,13 @@
 }
 
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  #printable-receipt, #printable-receipt * {
-    visibility: visible;
-  }
-  #printable-receipt {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    border: none;
+  .no-print,
+  .modal-header,
+  .modal-actions,
+  .module-layout,
+  .navbar,
+  .header-actions {
+    display: none !important;
   }
 }
 

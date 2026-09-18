@@ -27,6 +27,9 @@
             >
               <i class="bi" [ngClass]="module.icon"></i>
               <span>{{ module.label }}</span>
+              @if (module.route === '/reservas' && pendingReservations() > 0) {
+                <span class="badge-pending">{{ pendingReservations() > 99 ? '99+' : pendingReservations() }}</span>
+              }
             </a>
           </li>
         }

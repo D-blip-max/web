@@ -6,6 +6,7 @@ import { SaleService } from '../../../core/services/sale.service';
 import { BranchService } from '../../../core/services/branch.service';
 import { ProductService } from '../../../core/services/product.service';
 import { ReservationService } from '../../../core/services/reservation.service';
+import { PayPalService } from '../../../core/services/paypal.service';
 import { Branch } from '../../../core/models/branch.model';
 import { Sale, PaymentMethod } from '../../../core/models/sale.model';
 import { Reservation } from '../../../core/models/reservation.model';
@@ -44,6 +45,7 @@ export class PosComponent implements OnInit {
   private branchService = inject(BranchService);
   private productService = inject(ProductService);
   private reservationService = inject(ReservationService);
+  private paypalService = inject(PayPalService);
 
   branches = signal<Branch[]>([]);
   selectedBranchId = signal<string>('');
@@ -65,6 +67,8 @@ export class PosComponent implements OnInit {
   montoRecibido: number = 0;
   referenciaPago: string = '';
   notaVenta: string = '';
+  isPayPalLoading = signal<boolean>(false);
+  paypalExchangeRate = signal<number>(6.96);
 
   // UI state
   isLoading = signal<boolean>(false);
@@ -251,6 +255,105 @@ export class PosComponent implements OnInit {
     if (this.paymentMethod === 'EFECTIVO') {
       this.montoRecibido = this.getTotal();
     }
+  }
+
+  selectPaymentMethod(method: PaymentMethod): void {
+    this.paymentMethod = method;
+    this.errorMessage.set(null);
+    if (method === 'EFECTIVO') {
+      this.autoFillCashAmount();
+    } else if (method === 'PAYPAL') {
+      this.renderPayPalButtons();
+    }
+  }
+
+  getUsdAmount(): number {
+    const rate = this.paypalExchangeRate() || 6.96;
+    return Number((this.getTotal() / rate).toFixed(2));
+  }
+
+  renderPayPalButtons(): void {
+    if (this.cart().length === 0) return;
+    this.isPayPalLoading.set(true);
+
+    setTimeout(() => {
+      const container = document.getElementById('paypal-button-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      this.paypalService.loadScript().then((paypal) => {
+        this.isPayPalLoading.set(false);
+        if (!paypal || !paypal.Buttons) return;
+
+        paypal.Buttons({
+          style: {
+            layout: 'vertical',
+            color: 'gold',
+            shape: 'rect',
+            label: 'pay'
+          },
+          createOrder: () => {
+            return new Promise((resolve, reject) => {
+              const payload = {
+                monto_bob: this.getTotal(),
+                sucursal_id: this.selectedBranchId(),
+                reserva_id: this.selectedReservationId() || undefined,
+                descripcion: `Venta POS FICCT STORE (${this.cart().length} prendas)`,
+                items: this.cart().map((item) => ({
+                  name: `${item.productoNombre} (${item.talla}/${item.color})`,
+                  quantity: item.cantidad,
+                  unit_amount_bob: item.precioUnitario
+                }))
+              };
+
+              this.paypalService.createOrder(payload).subscribe({
+                next: (res) => resolve(res.order_id),
+                error: (err) => {
+                  this.errorMessage.set(err.error?.detail || 'Error al generar la orden en PayPal');
+                  reject(err);
+                }
+              });
+            });
+          },
+          onApprove: (data: any) => {
+            this.isSubmitting.set(true);
+            const capturePayload = {
+              order_id: data.orderID,
+              sucursal_id: this.selectedBranchId(),
+              reserva_id: this.selectedReservationId() || undefined,
+              detalles: this.cart().map((item) => ({
+                variante_id: item.varianteId,
+                cantidad: item.cantidad,
+                precio_unitario: item.precioUnitario,
+                reserva_id: item.reservaId
+              })),
+              nota: `Cobro en mostrador POS vía PayPal Sandbox`
+            };
+
+            this.paypalService.captureOrder(capturePayload).subscribe({
+              next: (res) => {
+                this.isSubmitting.set(false);
+                this.completedSale.set(res.venta);
+                this.showReceiptModal.set(true);
+                this.clearCart();
+                this.loadBranchReservations();
+              },
+              error: (err) => {
+                this.isSubmitting.set(false);
+                this.errorMessage.set(err.error?.detail || 'Error al capturar el pago en PayPal');
+              }
+            });
+          },
+          onError: (err: any) => {
+            console.error('PayPal error:', err);
+            this.errorMessage.set('Ocurrió un error al procesar el pago con PayPal.');
+          }
+        }).render('#paypal-button-container');
+      }).catch((err) => {
+        this.isPayPalLoading.set(false);
+        this.errorMessage.set('No se pudo cargar el SDK de PayPal.');
+      });
+    }, 150);
   }
 
   processSale(): void {

@@ -86,10 +86,16 @@
   text-decoration: none;
   transition: all var(--transition-fast);
   border: 1px solid transparent;
+  justify-content: space-between;
+}
+
+.nav-link > span:first-of-type {
+  flex: 1;
 }
 
 .nav-link i {
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .nav-link:hover {
@@ -107,6 +113,27 @@
 
 .nav-link.active i {
   color: var(--accent);
+}
+
+.badge-pending {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #DC2626;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0); }
 }
 
 .empty-nav {

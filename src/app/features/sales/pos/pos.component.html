@@ -208,24 +208,55 @@
                     type="button"
                     class="payment-btn"
                     [class.active]="paymentMethod === 'EFECTIVO'"
-                    (click)="paymentMethod = 'EFECTIVO'; autoFillCashAmount()">
-                    Efectivo
+                    (click)="selectPaymentMethod('EFECTIVO')">
+                    💵 Efectivo
                   </button>
                   <button
                     type="button"
                     class="payment-btn"
                     [class.active]="paymentMethod === 'QR'"
-                    (click)="paymentMethod = 'QR'">
-                    QR
+                    (click)="selectPaymentMethod('QR')">
+                    📱 QR
                   </button>
                   <button
                     type="button"
                     class="payment-btn"
                     [class.active]="paymentMethod === 'TARJETA'"
-                    (click)="paymentMethod = 'TARJETA'">
-                    Tarjeta
+                    (click)="selectPaymentMethod('TARJETA')">
+                    💳 Tarjeta
+                  </button>
+                  <button
+                    type="button"
+                    class="payment-btn paypal-tab-btn"
+                    [class.active]="paymentMethod === 'PAYPAL'"
+                    (click)="selectPaymentMethod('PAYPAL')">
+                    🅿️ PayPal
                   </button>
                 </div>
+              </div>
+
+              <!-- PayPal Container Block -->
+              <div *ngIf="paymentMethod === 'PAYPAL'" class="paypal-block mb-3 p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-xs text-muted">Total en Bolivianos:</span>
+                  <span class="font-bold text-primary">{{ getTotal() | number:'1.2-2' }} Bs.</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <span class="text-xs text-muted">Equivalente en Dólares (USD):</span>
+                  <span class="badge badge-success font-bold">${{ getUsdAmount() }} USD</span>
+                </div>
+
+                @if (isPayPalLoading()) {
+                  <div class="text-center py-3">
+                    <div class="spinner"></div>
+                    <p class="text-muted text-xs mt-2">Cargando botones de PayPal Sandbox...</p>
+                  </div>
+                }
+
+                <div id="paypal-button-container" class="my-2"></div>
+                <small class="text-muted text-xs d-block text-center mt-2">
+                  🔒 Procesamiento seguro mediante PayPal Sandbox API REST v2
+                </small>
               </div>
 
               <!-- Cash Input Block -->
@@ -258,7 +289,7 @@
               </div>
 
               <!-- Reference if QR or Card -->
-              <div *ngIf="paymentMethod !== 'EFECTIVO'" class="mb-3">
+              <div *ngIf="paymentMethod === 'QR' || paymentMethod === 'TARJETA'" class="mb-3">
                 <label class="form-label">N° Autorización / Referencia {{ paymentMethod }}:</label>
                 <input
                   type="text"
@@ -267,8 +298,9 @@
                   [(ngModel)]="referenciaPago">
               </div>
 
-              <!-- Submit Button -->
+              <!-- Submit Button for Cash / QR / Card -->
               <button
+                *ngIf="paymentMethod !== 'PAYPAL'"
                 class="btn btn-primary btn-full py-3 font-bold"
                 (click)="processSale()"
                 [disabled]="isSubmitting() || (paymentMethod === 'EFECTIVO' && montoRecibido < getTotal())">
@@ -286,7 +318,7 @@
 <!-- Modal Recibo de Venta (Comprobante) -->
 <div class="modal-backdrop" *ngIf="showReceiptModal()">
   <div class="modal-card receipt-modal glass-card">
-    <div class="modal-header">
+    <div class="modal-header no-print">
       <h3 class="modal-title">Recibo de Venta</h3>
       <button type="button" class="btn-close" (click)="closeReceiptModal()">×</button>
     </div>
@@ -338,6 +370,10 @@
             <span>Método de Pago:</span>
             <span>{{ sale.metodo_pago }}</span>
           </div>
+          <div class="d-flex justify-content-between text-muted text-xs" *ngIf="sale.referencia_pago">
+            <span>Referencia / Transacción:</span>
+            <code>{{ sale.referencia_pago }}</code>
+          </div>
           <div class="d-flex justify-content-between text-muted text-xs" *ngIf="sale.monto_recibido">
             <span>Monto Pagado:</span>
             <span>{{ sale.monto_recibido | number:'1.2-2' }} Bs.</span>
@@ -356,7 +392,7 @@
         </div>
       </div>
 
-      <div class="modal-actions d-flex gap-2 mt-4">
+      <div class="modal-actions d-flex gap-2 mt-4 no-print">
         <button type="button" class="btn btn-secondary w-50" (click)="printReceipt()">
           Imprimir Recibo
         </button>

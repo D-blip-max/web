@@ -78,8 +78,15 @@
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 0.75rem;
+}
+
+@media (max-width: 500px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
 }
 
 .product-card {
@@ -187,21 +194,28 @@
 /* Payment selection */
 .payment-methods-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+@media (max-width: 600px) {
+  .payment-methods-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .payment-btn {
-  padding: 0.6rem;
+  padding: 0.6rem 0.4rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   background: var(--bg-surface);
   color: var(--text-main);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all var(--transition-fast);
   text-align: center;
+  white-space: nowrap;
 }
 
 .payment-btn:hover {
@@ -212,6 +226,19 @@
   background: var(--accent);
   color: white;
   border-color: var(--accent);
+}
+
+.paypal-tab-btn.active {
+  background: #0070ba;
+  color: #ffffff;
+  border-color: #0070ba;
+}
+
+.paypal-block {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 112, 186, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 112, 186, 0.08);
 }
 
 .cash-block {
@@ -321,18 +348,13 @@
 }
 
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  #printable-receipt, #printable-receipt * {
-    visibility: visible;
-  }
-  #printable-receipt {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    border: none;
+  .no-print,
+  .modal-header,
+  .modal-actions,
+  .module-layout,
+  .navbar,
+  .pos-grid {
+    display: none !important;
   }
 }
 

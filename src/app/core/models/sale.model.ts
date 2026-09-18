@@ -1,6 +1,6 @@
 export type SaleType = 'PRESENCIAL' | 'DIGITAL';
 export type SaleStatus = 'PENDIENTE_PAGO' | 'COMPLETADA' | 'CANCELADA';
-export type PaymentMethod = 'EFECTIVO' | 'TARJETA' | 'QR';
+export type PaymentMethod = 'EFECTIVO' | 'TARJETA' | 'QR' | 'PAYPAL';
 
 export interface SaleItemCreate {
   variante_id: string;

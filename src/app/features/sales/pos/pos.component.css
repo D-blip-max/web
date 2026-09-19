@@ -194,15 +194,10 @@
 /* Payment selection */
 .payment-methods-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.4rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
 }
 
-@media (max-width: 600px) {
-  .payment-methods-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 
 .payment-btn {
   padding: 0.6rem 0.4rem;

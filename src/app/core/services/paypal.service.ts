@@ -100,8 +100,14 @@ export class PayPalService {
     reserva_id?: string;
     descripcion?: string;
     items?: Array<{ name: string; quantity: number; unit_amount_bob: number }>;
+    return_url?: string;
+    cancel_url?: string;
   }): Observable<PayPalCreateOrderResponse> {
-    return this.http.post<PayPalCreateOrderResponse>(`${this.apiUrl}/create-order`, payload);
+    return this.http.post<PayPalCreateOrderResponse>(`${this.apiUrl}/create-order`, {
+      return_url: window.location.origin + '/ventas/pos?paypal=success',
+      cancel_url: window.location.origin + '/ventas/pos?paypal=cancel',
+      ...payload
+    });
   }
 
   captureOrder(payload: {

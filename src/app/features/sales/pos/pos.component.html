@@ -213,20 +213,6 @@
                   </button>
                   <button
                     type="button"
-                    class="payment-btn"
-                    [class.active]="paymentMethod === 'QR'"
-                    (click)="selectPaymentMethod('QR')">
-                    📱 QR
-                  </button>
-                  <button
-                    type="button"
-                    class="payment-btn"
-                    [class.active]="paymentMethod === 'TARJETA'"
-                    (click)="selectPaymentMethod('TARJETA')">
-                    💳 Tarjeta
-                  </button>
-                  <button
-                    type="button"
                     class="payment-btn paypal-tab-btn"
                     [class.active]="paymentMethod === 'PAYPAL'"
                     (click)="selectPaymentMethod('PAYPAL')">
@@ -288,17 +274,7 @@
                 </div>
               </div>
 
-              <!-- Reference if QR or Card -->
-              <div *ngIf="paymentMethod === 'QR' || paymentMethod === 'TARJETA'" class="mb-3">
-                <label class="form-label">N° Autorización / Referencia {{ paymentMethod }}:</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  placeholder="Ej: AUT-998877 o REF-QR-1234"
-                  [(ngModel)]="referenciaPago">
-              </div>
-
-              <!-- Submit Button for Cash / QR / Card -->
+              <!-- Submit Button for Cash -->
               <button
                 *ngIf="paymentMethod !== 'PAYPAL'"
                 class="btn btn-primary btn-full py-3 font-bold"

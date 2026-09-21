@@ -130,6 +130,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/sales/sale-reports/sale-reports.component').then((m) => m.SaleReportsComponent),
         canActivate: [permissionGuard],
         data: { permission: 'ventas.reports' }
+      },
+      {
+        path: 'reportes-ia',
+        loadComponent: () => import('./features/voice-reports/voice-reports.component').then((m) => m.VoiceReportsComponent),
+        canActivate: [permissionGuard],
+        data: { permission: 'ventas.reports' }
       }
     ]
   },

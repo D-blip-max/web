@@ -94,5 +94,11 @@ export const NAV_MODULES: NavModule[] = [
     icon: 'bi-graph-up',
     route: '/ventas/reportes',
     permission: 'ventas.reports'
+  },
+  {
+    label: 'Reportes por Voz (IA)',
+    icon: 'bi-mic-fill',
+    route: '/reportes-ia',
+    permission: 'ventas.reports'
   }
 ];

@@ -1,0 +1,211 @@
+<div class="voice-reports-container">
+  <!-- Encabezado de la página -->
+  <div class="page-header glass-card">
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <i class="bi bi-mic-fill"></i>
+      </div>
+      <div>
+        <h1 class="page-title">Reportes Inteligentes con IA</h1>
+        <p class="page-subtitle">
+          Formula preguntas de negocio por voz o texto. El asistente traducirá tu solicitud a consultas SQL seguras en tiempo real.
+        </p>
+      </div>
+    </div>
+    <div class="security-badge">
+      <i class="bi bi-shield-check"></i>
+      <span>100% Solo Lectura (SELECT)</span>
+    </div>
+  </div>
+
+  <!-- Tarjeta de Entrada de Voz / Pregunta -->
+  <div class="assistant-card glass-card">
+    <div class="voice-controls-wrapper">
+      <!-- Botón de Micrófono Principal -->
+      <button
+        type="button"
+        class="mic-button"
+        [class.listening]="speechService.isListening()"
+        (click)="toggleMicrophone()"
+        [title]="speechService.isListening() ? 'Detener micrófono' : 'Hablar por micrófono'"
+      >
+        <div class="mic-pulse-ring" *ngIf="speechService.isListening()"></div>
+        <div class="mic-pulse-ring-2" *ngIf="speechService.isListening()"></div>
+        <i class="bi" [ngClass]="speechService.isListening() ? 'bi-mic-mute-fill' : 'bi-mic-fill'"></i>
+      </button>
+
+      <div class="voice-status-text">
+        <span class="status-indicator" [class.active]="speechService.isListening()"></span>
+        <span *ngIf="speechService.isListening()" class="listening-text">
+          Escuchando... Di tu pregunta en voz alta
+        </span>
+        <span *ngIf="!speechService.isListening()" class="idle-text">
+          Presiona el micrófono para hablar o escribe tu pregunta abajo
+        </span>
+      </div>
+    </div>
+
+    <!-- Campo de Entrada de Pregunta -->
+    <div class="query-input-wrapper">
+      <div class="input-with-actions">
+        <i class="bi bi-search input-search-icon"></i>
+        <input
+          type="text"
+          class="query-input"
+          placeholder="Ej: ¿Cuáles son los 5 productos más vendidos? o ¿Qué cliente gastó más?"
+          [(ngModel)]="queryText"
+          (keydown.enter)="executeQuery()"
+          [disabled]="isLoading()"
+        />
+        <button
+          *ngIf="queryText()"
+          type="button"
+          class="btn-clear"
+          (click)="queryText.set('')"
+          title="Limpiar texto"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="btn-execute"
+        (click)="executeQuery()"
+        [disabled]="isLoading() || !queryText().trim()"
+      >
+        <span *ngIf="!isLoading()">
+          <i class="bi bi-lightning-charge-fill me-1"></i> Generar Reporte
+        </span>
+        <span *ngIf="isLoading()" class="spinner-container">
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          Consultando IA...
+        </span>
+      </button>
+    </div>
+
+    <!-- Chips de Sugerencias Rápidas -->
+    <div class="suggestions-wrapper">
+      <span class="suggestions-label"><i class="bi bi-lightbulb me-1"></i> Sugerencias:</span>
+      <div class="chips-list">
+        @for (sug of suggestions; track sug) {
+          <button
+            type="button"
+            class="suggestion-chip"
+            (click)="useSuggestion(sug)"
+            [disabled]="isLoading()"
+          >
+            {{ sug }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Alerta de Error -->
+    @if (errorMessage()) {
+      <div class="alert alert-danger custom-alert mt-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Sección de Resultados -->
+  @if (currentReport(); as report) {
+    <div class="results-card glass-card mt-4">
+      <!-- Encabezado de Resultados y Acciones de Exportación -->
+      <div class="results-header">
+        <div class="results-title-group">
+          <h2 class="results-title">
+            <i class="bi bi-table me-2 text-primary"></i>
+            Resultados del Reporte
+          </h2>
+          <p class="results-interpretation">
+            {{ report.interpretacion || report.pregunta }}
+          </p>
+        </div>
+
+        <div class="export-actions">
+          <button
+            type="button"
+            class="btn btn-export-pdf"
+            (click)="exportPdf()"
+            title="Exportar a documento PDF"
+          >
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Exportar PDF
+          </button>
+          <button
+            type="button"
+            class="btn btn-export-csv"
+            (click)="exportCsv()"
+            title="Descargar en formato CSV"
+          >
+            <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Metadatos y Toggle SQL -->
+      <div class="results-metadata">
+        <div class="meta-item">
+          <i class="bi bi-list-ol text-muted me-1"></i>
+          <span>Filas obtenidas: <strong>{{ report.total_filas }}</strong></span>
+        </div>
+        <div class="meta-item">
+          <i class="bi bi-clock-history text-muted me-1"></i>
+          <span>Tiempo de respuesta: <strong>{{ report.tiempo_ms }} ms</strong></span>
+        </div>
+        <button
+          type="button"
+          class="btn-toggle-sql"
+          (click)="toggleSql()"
+        >
+          <i class="bi" [ngClass]="showSql() ? 'bi-eye-slash-fill' : 'bi-code-slash'"></i>
+          <span>{{ showSql() ? 'Ocultar consulta SQL' : 'Ver consulta SQL generada' }}</span>
+        </button>
+      </div>
+
+      <!-- Vista de Consulta SQL -->
+      @if (showSql()) {
+        <div class="sql-box-wrapper">
+          <div class="sql-box-header">
+            <span><i class="bi bi-terminal-fill me-1"></i> SQL PostgreSQL (Solo Lectura)</span>
+          </div>
+          <pre class="sql-code"><code>{{ report.sql_generado }}</code></pre>
+        </div>
+      }
+
+      <!-- Tabla Dinámica de Resultados -->
+      @if (report.total_filas > 0) {
+        <div class="table-responsive custom-table-wrapper mt-3">
+          <table class="table custom-table">
+            <thead>
+              <tr>
+                <th class="row-index-col">#</th>
+                @for (col of report.columnas; track col) {
+                  <th>{{ formatHeader(col) }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of report.filas; track $index) {
+                <tr>
+                  <td class="row-index-cell">{{ $index + 1 }}</td>
+                  @for (col of report.columnas; track col) {
+                    <td>{{ formatValue(col, row[col]) }}</td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-results-box">
+          <i class="bi bi-inbox text-muted empty-icon"></i>
+          <p class="empty-title">No se encontraron registros</p>
+          <p class="empty-subtitle">La consulta se ejecutó con éxito pero no arrojó resultados para ese criterio.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

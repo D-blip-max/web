@@ -36,6 +36,12 @@ export const routes: Routes = [
         data: { permission: 'roles.list' }
       },
       {
+        path: 'usuarios',
+        loadComponent: () => import('./features/users/user-list/user-list.component').then((m) => m.UserListComponent),
+        canActivate: [permissionGuard],
+        data: { permission: 'users.list' }
+      },
+      {
         path: 'roles/:id/permissions',
         loadComponent: () => import('./features/roles/role-permissions/role-permissions.component').then((m) => m.RolePermissionsComponent),
         canActivate: [permissionGuard],

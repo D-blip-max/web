@@ -1,0 +1,137 @@
+<div class="modal-overlay">
+  <div class="modal-card glass-card">
+    <div class="modal-header">
+      <div class="d-flex align-items-center gap-2">
+        <div class="modal-icon-badge">
+          <i class="bi" [class.bi-person-plus]="!user" [class.bi-person-gear]="!!user"></i>
+        </div>
+        <div>
+          <h3 class="m-0">{{ user ? 'Editar Usuario' : 'Nuevo Usuario' }}</h3>
+          <span class="modal-subtitle">{{ user ? 'Actualiza los datos y credenciales del usuario' : 'Crea una cuenta con cualquier rol asignado' }}</span>
+        </div>
+      </div>
+      <button (click)="onCancel()" class="btn-close" title="Cerrar">&times;</button>
+    </div>
+
+    @if (isSelfEdit()) {
+      <div class="alert alert-info">
+        <i class="bi bi-shield-lock alert-icon"></i>
+        <span>Estás editando tu propia cuenta. Por seguridad, no puedes cambiar tu rol ni desactivar tu propio usuario.</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="user-form">
+      <div class="form-group">
+        <label class="form-label" for="user_fullname">Nombre Completo *</label>
+        <div class="input-icon-wrap">
+          <i class="bi bi-person input-icon"></i>
+          <input
+            id="user_fullname"
+            type="text"
+            formControlName="full_name"
+            class="form-control with-icon"
+            placeholder="Ej: Carlos Pérez Martínez"
+          />
+        </div>
+        @if (form.get('full_name')?.touched && form.get('full_name')?.invalid) {
+          <span class="error-text">El nombre debe tener al menos 2 caracteres.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="user_email">Correo Electrónico *</label>
+        <div class="input-icon-wrap">
+          <i class="bi bi-envelope input-icon"></i>
+          <input
+            id="user_email"
+            type="email"
+            formControlName="email"
+            class="form-control with-icon"
+            placeholder="ejemplo@tienda.com"
+          />
+        </div>
+        @if (form.get('email')?.touched && form.get('email')?.invalid) {
+          <span class="error-text">Ingresa un correo electrónico válido.</span>
+        }
+      </div>
+
+      <div class="row-2-col">
+        <div class="form-group">
+          <label class="form-label" for="user_role">Rol Asignado *</label>
+          <div class="input-icon-wrap">
+            <i class="bi bi-shield-check input-icon"></i>
+            <select id="user_role" formControlName="role_id" class="form-control with-icon">
+              <option value="" disabled>Selecciona un rol</option>
+              @for (r of roles; track r.id) {
+                <option [value]="r.id">{{ r.name | uppercase }} - {{ r.description || 'Sin descripción' }}</option>
+              }
+            </select>
+          </div>
+          @if (form.get('role_id')?.touched && form.get('role_id')?.invalid) {
+            <span class="error-text">Debes seleccionar un rol para el usuario.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="user_status">Estado de la Cuenta</label>
+          <div class="checkbox-container">
+            <label class="toggle-switch">
+              <input type="checkbox" id="user_status" formControlName="is_active" />
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="status-label">
+              {{ form.get('is_active')?.value ? 'Cuenta Activa' : 'Cuenta Inactiva' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="user_password">
+          {{ user ? 'Nueva Contraseña (Opcional)' : 'Contraseña de Acceso *' }}
+        </label>
+        <div class="input-icon-wrap">
+          <i class="bi bi-key input-icon"></i>
+          <input
+            id="user_password"
+            type="password"
+            formControlName="password"
+            class="form-control with-icon"
+            [placeholder]="user ? 'Dejar en blanco si no deseas cambiarla' : 'Mínimo 8 caracteres'"
+          />
+        </div>
+        @if (form.get('password')?.touched && form.get('password')?.invalid) {
+          <span class="error-text">La contraseña debe tener al menos 8 caracteres.</span>
+        } @else if (user) {
+          <span class="hint-text">Si la dejas vacía, se conservará la contraseña actual.</span>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" (click)="onCancel()" class="btn btn-secondary">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving() || form.invalid">
+          @if (isSaving()) {
+            <div class="spinner"></div>
+            <span>Guardando...</span>
+          } @else {
+            <i class="bi" [class.bi-check2-circle]="!!user" [class.bi-plus-circle]="!user"></i>
+            <span>{{ user ? 'Guardar Cambios' : 'Crear Usuario' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,260 @@
+<div class="module-layout">
+  <header class="navbar glass-card">
+    <div class="nav-brand">
+      <div class="title-with-icon">
+        <div class="header-icon-container">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div>
+          <h1 class="page-title">Gestión de Usuarios</h1>
+          <p class="page-subtitle">Administra cuentas, roles y accesos para el personal y clientes de FICCT STORE</p>
+        </div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button *appHasPermission="'users.create'" (click)="openCreateModal()" class="btn btn-primary">
+        <i class="bi bi-person-plus-fill"></i>
+        <span>Nuevo Usuario</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="module-content">
+    <!-- Mensajes de Estado -->
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Tarjetas de Métricas -->
+    <div class="stats-grid">
+      <div class="stat-card glass-card">
+        <div class="stat-icon-wrapper total">
+          <i class="bi bi-people"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Total Usuarios</span>
+          <h2 class="stat-value">{{ totalUsers() }}</h2>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card">
+        <div class="stat-icon-wrapper admins">
+          <i class="bi bi-shield-lock"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Administradores</span>
+          <h2 class="stat-value">{{ totalAdmins() }}</h2>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card">
+        <div class="stat-icon-wrapper staff">
+          <i class="bi bi-person-badge"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Cajeros y Almacén</span>
+          <h2 class="stat-value">{{ totalStaff() }}</h2>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card">
+        <div class="stat-icon-wrapper clients">
+          <i class="bi bi-bag-heart"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Clientes Registrados</span>
+          <h2 class="stat-value">{{ totalClients() }}</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenedor Principal de la Tabla con Filtros -->
+    <div class="card glass-card">
+      <div class="card-header-bar">
+        <div class="filters-wrap">
+          <div class="search-input-box">
+            <i class="bi bi-search search-icon"></i>
+            <input
+              type="text"
+              class="form-control search-field"
+              placeholder="Buscar por nombre o correo..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+            />
+            @if (searchQuery()) {
+              <button class="clear-search-btn" (click)="searchQuery.set('')">
+                <i class="bi bi-x"></i>
+              </button>
+            }
+          </div>
+
+          <div class="filter-group">
+            <select
+              class="form-control filter-select"
+              [ngModel]="roleFilter()"
+              (ngModelChange)="roleFilter.set($event)"
+            >
+              <option value="all">Todos los Roles</option>
+              @for (r of roles(); track r.id) {
+                <option [value]="r.name">{{ r.name | uppercase }}</option>
+              }
+            </select>
+
+            <select
+              class="form-control filter-select"
+              [ngModel]="statusFilter()"
+              (ngModelChange)="statusFilter.set($event)"
+            >
+              <option value="all">Todos los Estados</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Inactivos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-results-badge">
+          <span class="badge badge-variant">
+            {{ filteredUsers().length }} de {{ totalUsers() }} usuarios
+          </span>
+        </div>
+      </div>
+
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p class="text-muted mt-2">Cargando directorio de usuarios...</p>
+        </div>
+      } @else if (filteredUsers().length === 0) {
+        <div class="empty-state">
+          <i class="bi bi-person-x empty-icon"></i>
+          <h4>No se encontraron usuarios</h4>
+          <p class="text-muted">Intenta cambiar los términos de búsqueda o filtros seleccionados.</p>
+          @if (searchQuery() || roleFilter() !== 'all' || statusFilter() !== 'all') {
+            <button class="btn btn-secondary btn-sm mt-2" (click)="searchQuery.set(''); roleFilter.set('all'); statusFilter.set('all')">
+              Limpiar filtros
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Verificado</th>
+                <th>Fecha de Registro</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of filteredUsers(); track u.id) {
+                <tr [class.row-self]="u.id === currentUserId()">
+                  <td>
+                    <div class="user-cell">
+                      <div class="user-avatar" [class.avatar-self]="u.id === currentUserId()">
+                        {{ getInitials(u.full_name) }}
+                      </div>
+                      <div class="user-details">
+                        <div class="user-name-line">
+                          <span class="user-name">{{ u.full_name }}</span>
+                          @if (u.id === currentUserId()) {
+                            <span class="badge-you">Tú</span>
+                          }
+                        </div>
+                        <span class="user-email">{{ u.email }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="getRoleBadgeClass(u.role?.name)">
+                      <i class="bi bi-shield-fill"></i>
+                      {{ u.role?.name ? (u.role?.name | uppercase) : 'SIN ROL' }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (u.is_active) {
+                      <span class="badge badge-status-active">
+                        <span class="status-dot dot-active"></span> Activo
+                      </span>
+                    } @else {
+                      <span class="badge badge-status-inactive">
+                        <span class="status-dot dot-inactive"></span> Inactivo
+                      </span>
+                    }
+                  </td>
+                  <td>
+                    @if (u.is_verified) {
+                      <span class="verified-tag text-success" title="Cuenta verificada">
+                        <i class="bi bi-patch-check-fill"></i> Verificado
+                      </span>
+                    } @else {
+                      <span class="unverified-tag text-dim" title="Pendiente de verificación">
+                        <i class="bi bi-dash-circle"></i> Pendiente
+                      </span>
+                    }
+                  </td>
+                  <td>
+                    <span class="date-text">{{ u.created_at | date:'dd/MM/yyyy, HH:mm' }}</span>
+                  </td>
+                  <td class="text-end action-cells">
+                    <button
+                      *appHasPermission="'users.update'"
+                      (click)="openEditModal(u)"
+                      class="btn btn-sm btn-secondary"
+                      title="Editar usuario"
+                    >
+                      <i class="bi bi-pencil-square"></i>
+                      <span>Editar</span>
+                    </button>
+
+                    <button
+                      *appHasPermission="'users.update'"
+                      (click)="toggleUserActive(u)"
+                      [disabled]="u.id === currentUserId()"
+                      class="btn btn-sm"
+                      [ngClass]="u.is_active ? 'btn-toggle-deactivate' : 'btn-toggle-activate'"
+                      [title]="u.id === currentUserId() ? 'No puedes desactivar tu propia cuenta' : (u.is_active ? 'Desactivar acceso' : 'Reactivar acceso')"
+                    >
+                      <i class="bi" [class.bi-person-x]="u.is_active" [class.bi-person-check]="!u.is_active"></i>
+                      <span>{{ u.is_active ? 'Desactivar' : 'Activar' }}</span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </main>
+
+  <!-- Modal de Formulario -->
+  @if (showFormModal()) {
+    <app-user-form
+      [user]="selectedUserForEdit()"
+      [roles]="roles()"
+      [currentUserId]="currentUserId()"
+      (save)="onUserSaved()"
+      (cancel)="closeFormModal()"
+    ></app-user-form>
+  }
+</div>

@@ -18,6 +18,12 @@ export const NAV_MODULES: NavModule[] = [
     permission: 'roles.list'
   },
   {
+    label: 'Gestión de Usuarios',
+    icon: 'bi-people',
+    route: '/usuarios',
+    permission: 'users.list'
+  },
+  {
     label: 'Sucursales',
     icon: 'bi-shop',
     route: '/sucursales',

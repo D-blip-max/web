@@ -1,0 +1,173 @@
+<div class="module-layout">
+  <header class="navbar glass-card">
+    <div class="nav-brand">
+      <div class="title-with-icon">
+        <div class="header-icon-container">
+          <i class="bi bi-journal-text"></i>
+        </div>
+        <div>
+          <h1 class="page-title">Bitácora del Sistema</h1>
+          <p class="page-subtitle">Registro cronológico de acciones y actividades de los usuarios en la plataforma</p>
+        </div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadLogs()" [disabled]="isLoading()" title="Actualizar registros">
+        <i class="bi bi-arrow-clockwise" [class.spin-icon]="isLoading()"></i>
+        <span>Refrescar</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="module-content">
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Contenedor Principal de la Bitácora -->
+    <div class="card glass-card">
+      <!-- Barra de Filtros -->
+      <div class="card-header-bar">
+        <div class="filters-wrap">
+          <div class="search-input-box">
+            <i class="bi bi-search search-icon"></i>
+            <input
+              type="text"
+              class="form-control search-field"
+              placeholder="Buscar por usuario o acción..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event); onFilterChange()"
+            />
+            @if (searchQuery()) {
+              <button class="clear-search-btn" (click)="searchQuery.set(''); onFilterChange()">
+                <i class="bi bi-x"></i>
+              </button>
+            }
+          </div>
+
+          <div class="filter-group">
+            <select
+              class="form-control filter-select"
+              [ngModel]="selectedModule()"
+              (ngModelChange)="selectedModule.set($event); onFilterChange()"
+            >
+              <option value="all">Todos los Módulos</option>
+              @for (m of modulesList; track m) {
+                <option [value]="m">{{ m }}</option>
+              }
+            </select>
+
+            <select
+              class="form-control filter-select"
+              [ngModel]="selectedRole()"
+              (ngModelChange)="selectedRole.set($event); onFilterChange()"
+            >
+              <option value="all">Todos los Roles</option>
+              @for (r of rolesList; track r) {
+                <option [value]="r">{{ r | uppercase }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="table-results-badge">
+          <span class="badge badge-variant">
+            {{ logs().length }} registros encontrados
+          </span>
+        </div>
+      </div>
+
+      <!-- Estados de Carga y Tabla -->
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p class="text-muted mt-2">Cargando eventos de la bitácora...</p>
+        </div>
+      } @else if (logs().length === 0) {
+        <div class="empty-state">
+          <i class="bi bi-journal-x empty-icon"></i>
+          <h4>No hay registros que coincidan</h4>
+          <p class="text-muted">Ajusta los términos de búsqueda o filtros seleccionados.</p>
+          @if (searchQuery() || selectedModule() !== 'all' || selectedRole() !== 'all') {
+            <button class="btn btn-secondary btn-sm mt-2" (click)="clearFilters()">
+              Restablecer filtros
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 200px;">Fecha / Hora</th>
+                <th>Usuario</th>
+                <th style="width: 130px;">Rol</th>
+                <th>Acción</th>
+                <th style="width: 150px;">Módulo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (log of logs(); track log.id) {
+                <tr>
+                  <!-- 1. Fecha / Hora -->
+                  <td>
+                    <div class="date-cell">
+                      <i class="bi bi-clock-history date-icon"></i>
+                      <span class="date-text">{{ log.created_at | date:'dd/MM/yyyy, HH:mm:ss' }}</span>
+                    </div>
+                  </td>
+
+                  <!-- 2. Usuario -->
+                  <td>
+                    <div class="user-cell">
+                      <div class="user-avatar">
+                        {{ getInitials(log.user_name) }}
+                      </div>
+                      <div class="user-info">
+                        <span class="user-name">{{ log.user_name || 'Desconocido' }}</span>
+                        <span class="user-email">{{ log.user_email }}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- 3. Rol -->
+                  <td>
+                    <span class="badge" [ngClass]="getRoleBadgeClass(log.user_role)">
+                      <i class="bi bi-shield-fill"></i>
+                      {{ log.user_role | uppercase }}
+                    </span>
+                  </td>
+
+                  <!-- 4. Acción -->
+                  <td>
+                    <div class="action-cell">
+                      <span class="action-badge">
+                        <i class="bi bi-activity"></i>
+                        {{ log.action }}
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- 5. Módulo -->
+                  <td>
+                    <span class="badge" [ngClass]="getModuleBadgeClass(log.module)">
+                      <i class="bi bi-folder2"></i>
+                      {{ log.module }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </main>
+</div>

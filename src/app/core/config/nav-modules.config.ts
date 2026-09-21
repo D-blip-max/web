@@ -24,6 +24,12 @@ export const NAV_MODULES: NavModule[] = [
     permission: 'users.list'
   },
   {
+    label: 'Bitácora del Sistema',
+    icon: 'bi-journal-text',
+    route: '/bitacora',
+    permission: 'bitacora.list'
+  },
+  {
     label: 'Sucursales',
     icon: 'bi-shop',
     route: '/sucursales',

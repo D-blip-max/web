@@ -42,6 +42,12 @@ export const routes: Routes = [
         data: { permission: 'users.list' }
       },
       {
+        path: 'bitacora',
+        loadComponent: () => import('./features/bitacora/bitacora.component').then((m) => m.BitacoraComponent),
+        canActivate: [permissionGuard],
+        data: { permission: 'bitacora.list' }
+      },
+      {
         path: 'roles/:id/permissions',
         loadComponent: () => import('./features/roles/role-permissions/role-permissions.component').then((m) => m.RolePermissionsComponent),
         canActivate: [permissionGuard],

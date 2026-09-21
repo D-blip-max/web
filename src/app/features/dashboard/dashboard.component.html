@@ -56,7 +56,7 @@
         <p>Inicia una nueva transacción, atiende pedidos rápidos o realiza el cobro de reservas Click &amp; Collect.</p>
       </div>
       <div class="hero-actions">
-        <a routerLink="/pos" class="btn-hero-pos">
+        <a routerLink="/ventas/pos" class="btn-hero-pos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
             <line x1="8" y1="21" x2="16" y2="21"/>
@@ -226,37 +226,41 @@
         <span class="quick-title">Accesos Rápidos:</span>
         <div class="quick-buttons">
           @if (userRole() === 'admin') {
-            <a routerLink="/products/new" class="btn-chip">
+            <a routerLink="/productos/nuevo" class="btn-chip">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
               Nuevo Producto
             </a>
-            <a routerLink="/sales/reports" class="btn-chip">
+            <a routerLink="/ventas/reportes" class="btn-chip">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
               Reporte Financiero
+            </a>
+            <a routerLink="/reportes-ia" class="btn-chip" style="background: rgba(59, 130, 246, 0.12); color: #2563eb; border-color: rgba(59, 130, 246, 0.3);">
+              <i class="bi bi-mic-fill" style="font-size: 0.95rem;"></i>
+              Reportes con IA
             </a>
             <a routerLink="/roles" class="btn-chip">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               Roles &amp; Permisos
             </a>
           } @else if (userRole() === 'encargado') {
-            <a routerLink="/inventory/reception" class="btn-chip">
+            <a routerLink="/inventario/recepcion" class="btn-chip">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Recepción de Stock
             </a>
-            <a routerLink="/inventory/movements" class="btn-chip">
+            <a routerLink="/inventario/movimientos" class="btn-chip">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               Auditoría Kardex
             </a>
-            <a routerLink="/reservations" class="btn-chip">
+            <a routerLink="/reservas" class="btn-chip">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               Gestionar Reservas
             </a>
           } @else {
-            <a routerLink="/pos" class="btn-chip btn-chip-primary">
+            <a routerLink="/ventas/pos" class="btn-chip btn-chip-primary">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
               Ir al POS
             </a>
-            <a routerLink="/reservations" class="btn-chip">
+            <a routerLink="/reservas" class="btn-chip">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
               Entregar Reserva
             </a>
@@ -272,7 +276,7 @@
           <h3>Top Productos Más Vendidos</h3>
           <p class="panel-subtitle">Ranking por rotación e ingresos generados</p>
         </div>
-        <a routerLink="/sales/reports" class="link-more">Ver todos →</a>
+        <a routerLink="/ventas/reportes" class="link-more">Ver todos →</a>
       </div>
 
       <div class="table-responsive">
@@ -319,7 +323,7 @@
           <h3>Últimas Transacciones Registradas</h3>
           <p class="panel-subtitle">Auditoría en tiempo real de ventas presenciales y cobros</p>
         </div>
-        <a routerLink="/sales" class="link-more">Historial completo →</a>
+        <a routerLink="/ventas" class="link-more">Historial completo →</a>
       </div>
 
       <div class="table-responsive">

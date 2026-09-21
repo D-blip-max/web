@@ -8,7 +8,7 @@
 
   <div class="topbar-right">
     @if (currentUser(); as user) {
-      <div class="user-profile">
+      <a routerLink="/perfil" class="user-profile" title="Mi Cuenta y Seguridad (Cambiar Contraseña)">
         <div class="user-avatar">
           <i class="bi bi-person-circle"></i>
         </div>
@@ -16,7 +16,7 @@
           <span class="user-name">{{ user.full_name }}</span>
           <span class="user-email">{{ user.email }}</span>
         </div>
-      </div>
+      </a>
     }
 
     <!-- AI Voice Reports Quick Link -->

@@ -486,6 +486,16 @@
               />
             </div>
 
+            <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid rgba(100, 116, 139, 0.2); display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+              <div>
+                <strong style="font-size: 0.85rem; display: block; color: var(--text-main);">Seguridad y Acceso</strong>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Cambia tu contraseña y protege tu cuenta</span>
+              </div>
+              <a routerLink="/perfil" (click)="closeProfileModal()" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.45rem 0.85rem; white-space: nowrap; text-decoration: none;">
+                <i class="bi bi-key-fill me-1" style="color: #10b981;"></i> Cambiar Contraseña
+              </a>
+            </div>
+
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" (click)="closeProfileModal()">Cerrar</button>
               <button type="submit" class="btn btn-primary" [disabled]="isSavingProfile() || profileForm.invalid">

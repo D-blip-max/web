@@ -100,5 +100,11 @@ export const NAV_MODULES: NavModule[] = [
     icon: 'bi-mic-fill',
     route: '/reportes-ia',
     permission: 'ventas.reports'
+  },
+  {
+    label: 'Mi Cuenta y Seguridad',
+    icon: 'bi-person-gear',
+    route: '/perfil'
   }
 ];
+

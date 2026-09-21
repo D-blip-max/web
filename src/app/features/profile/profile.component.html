@@ -1,0 +1,275 @@
+<div class="profile-container">
+  <!-- Header de la Página -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-badge">
+        <i class="bi bi-shield-lock-fill"></i>
+        <span>Seguridad de la Cuenta</span>
+      </div>
+      <h1 class="page-title">Mi Cuenta y Seguridad</h1>
+      <p class="subtitle">Gestiona tu información personal y actualiza tu clave de acceso de forma segura.</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/dashboard" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver al Dashboard</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Grid Principal (2 Columnas) -->
+  <div class="profile-grid">
+    <!-- Columna 1: Información de Perfil -->
+    <div class="card profile-card glass-card">
+      <div class="card-header">
+        <div class="card-icon icon-amber">
+          <i class="bi bi-person-badge"></i>
+        </div>
+        <div>
+          <h2 class="card-title">Datos de la Cuenta</h2>
+          <p class="card-subtitle">Información del usuario y credencial del sistema</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        @if (currentUser(); as user) {
+          <!-- Avatar e Identidad -->
+          <div class="user-identity-box">
+            <div class="avatar-large">
+              {{ getUserInitials() }}
+            </div>
+            <div class="identity-info">
+              <h3 class="user-display-name">{{ user.full_name }}</h3>
+              <span class="user-email-text">{{ user.email }}</span>
+              <div class="badges-row">
+                <span class="role-badge" [ngClass]="getRoleBadgeClass(user.role?.name || '')">
+                  <i class="bi bi-shield-check"></i>
+                  {{ user.role?.name || 'Usuario' }}
+                </span>
+                <span class="status-badge" [class.status-active]="user.is_active">
+                  <span class="status-dot"></span>
+                  {{ user.is_active ? 'Cuenta Activa' : 'Inactiva' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mensajes de feedback de perfil -->
+          @if (profileSuccess()) {
+            <div class="alert alert-success">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>{{ profileSuccess() }}</span>
+            </div>
+          }
+          @if (profileError()) {
+            <div class="alert alert-error">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>{{ profileError() }}</span>
+            </div>
+          }
+
+          <!-- Formulario de actualización de nombre -->
+          <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" class="profile-form">
+            <div class="form-group">
+              <label class="form-label" for="full_name">
+                <i class="bi bi-person"></i>
+                <span>Nombre Completo</span>
+              </label>
+              <input
+                id="full_name"
+                type="text"
+                formControlName="full_name"
+                class="form-input"
+                placeholder="Ingresa tu nombre completo"
+              />
+              @if (profileForm.get('full_name')?.invalid && profileForm.get('full_name')?.touched) {
+                <span class="field-error">El nombre debe tener al menos 2 caracteres.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <i class="bi bi-envelope"></i>
+                <span>Correo Electrónico (No editable)</span>
+              </label>
+              <input
+                type="email"
+                [value]="user.email"
+                class="form-input disabled-input"
+                disabled
+              />
+              <span class="field-hint">El correo electrónico está vinculado a tu autenticación oficial.</span>
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="isSavingProfile() || profileForm.invalid"
+            >
+              @if (isSavingProfile()) {
+                <span class="spinner-sm"></span>
+                <span>Guardando...</span>
+              } @else {
+                <i class="bi bi-save"></i>
+                <span>Guardar Cambios de Perfil</span>
+              }
+            </button>
+          </form>
+        }
+      </div>
+    </div>
+
+    <!-- Columna 2: Cambio de Contraseña -->
+    <div class="card security-card glass-card">
+      <div class="card-header">
+        <div class="card-icon icon-emerald">
+          <i class="bi bi-key-fill"></i>
+        </div>
+        <div>
+          <h2 class="card-title">Cambiar Contraseña</h2>
+          <p class="card-subtitle">Actualiza tu clave para mantener tu cuenta protegida</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <!-- Alertas de estado -->
+        @if (passwordSuccess()) {
+          <div class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>{{ passwordSuccess() }}</span>
+          </div>
+        }
+        @if (passwordError()) {
+          <div class="alert alert-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>{{ passwordError() }}</span>
+          </div>
+        }
+
+        <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="password-form">
+          <!-- Contraseña Actual -->
+          <div class="form-group">
+            <label class="form-label" for="current_password">
+              <i class="bi bi-lock"></i>
+              <span>Contraseña Actual</span>
+            </label>
+            <div class="password-input-wrapper">
+              <input
+                id="current_password"
+                [type]="showCurrent() ? 'text' : 'password'"
+                formControlName="current_password"
+                class="form-input with-toggle"
+                placeholder="Ingresa tu contraseña actual"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                class="btn-toggle-eye"
+                (click)="toggleCurrent()"
+                tabindex="-1"
+                [title]="showCurrent() ? 'Ocultar' : 'Mostrar'"
+              >
+                <i class="bi" [ngClass]="showCurrent() ? 'bi-eye-slash' : 'bi-eye'"></i>
+              </button>
+            </div>
+            @if (passwordForm.get('current_password')?.invalid && passwordForm.get('current_password')?.touched) {
+              <span class="field-error">Ingresa tu contraseña actual para confirmar tu identidad.</span>
+            }
+          </div>
+
+          <!-- Nueva Contraseña -->
+          <div class="form-group">
+            <label class="form-label" for="new_password">
+              <i class="bi bi-shield-lock"></i>
+              <span>Nueva Contraseña</span>
+            </label>
+            <div class="password-input-wrapper">
+              <input
+                id="new_password"
+                [type]="showNew() ? 'text' : 'password'"
+                formControlName="new_password"
+                class="form-input with-toggle"
+                placeholder="Mínimo 8 caracteres"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="btn-toggle-eye"
+                (click)="toggleNew()"
+                tabindex="-1"
+                [title]="showNew() ? 'Ocultar' : 'Mostrar'"
+              >
+                <i class="bi" [ngClass]="showNew() ? 'bi-eye-slash' : 'bi-eye'"></i>
+              </button>
+            </div>
+            @if (passwordForm.get('new_password')?.hasError('minlength') && passwordForm.get('new_password')?.touched) {
+              <span class="field-error">La nueva contraseña debe tener al menos 8 caracteres.</span>
+            }
+          </div>
+
+          <!-- Confirmar Nueva Contraseña -->
+          <div class="form-group">
+            <label class="form-label" for="confirm_password">
+              <i class="bi bi-shield-check"></i>
+              <span>Confirmar Nueva Contraseña</span>
+            </label>
+            <div class="password-input-wrapper">
+              <input
+                id="confirm_password"
+                [type]="showConfirm() ? 'text' : 'password'"
+                formControlName="confirm_password"
+                class="form-input with-toggle"
+                placeholder="Repite tu nueva contraseña"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="btn-toggle-eye"
+                (click)="toggleConfirm()"
+                tabindex="-1"
+                [title]="showConfirm() ? 'Ocultar' : 'Mostrar'"
+              >
+                <i class="bi" [ngClass]="showConfirm() ? 'bi-eye-slash' : 'bi-eye'"></i>
+              </button>
+            </div>
+            @if (passwordForm.hasError('passwordsMismatch') && passwordForm.get('confirm_password')?.touched) {
+              <span class="field-error">Las contraseñas no coinciden.</span>
+            }
+            @if (passwordForm.hasError('samePassword') && passwordForm.get('new_password')?.touched) {
+              <span class="field-error">La nueva contraseña debe ser diferente a la actual.</span>
+            }
+          </div>
+
+          <!-- Requisitos de Contraseña -->
+          <div class="requirements-box">
+            <span class="req-title">Reglas de seguridad:</span>
+            <ul class="req-list">
+              <li [class.req-met]="(passwordForm.get('new_password')?.value?.length || 0) >= 8">
+                <i class="bi" [ngClass]="(passwordForm.get('new_password')?.value?.length || 0) >= 8 ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+                Mínimo 8 caracteres
+              </li>
+              <li [class.req-met]="passwordForm.get('new_password')?.value && passwordForm.get('new_password')?.value === passwordForm.get('confirm_password')?.value">
+                <i class="bi" [ngClass]="passwordForm.get('new_password')?.value && passwordForm.get('new_password')?.value === passwordForm.get('confirm_password')?.value ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+                Coincidencia exacta entre campos
+              </li>
+            </ul>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-emerald"
+            [disabled]="isChangingPassword() || passwordForm.invalid"
+          >
+            @if (isChangingPassword()) {
+              <span class="spinner-sm"></span>
+              <span>Actualizando contraseña...</span>
+            } @else {
+              <i class="bi bi-shield-check"></i>
+              <span>Actualizar Contraseña</span>
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

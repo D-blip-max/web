@@ -30,3 +30,9 @@ export interface MessageResponse {
   message: string;
   detail?: string;
 }
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+

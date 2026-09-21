@@ -9,7 +9,8 @@ import {
   TokenResponse,
   RefreshTokenRequest,
   LogoutRequest,
-  MessageResponse
+  MessageResponse,
+  ChangePasswordRequest
 } from '../models/auth.model';
 import { User, UserUpdate } from '../models/user.model';
 import { TokenService } from './token.service';
@@ -116,6 +117,11 @@ export class AuthService {
       tap((user) => this.currentUser.set(user))
     );
   }
+
+  changePassword(data: ChangePasswordRequest): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.API_URL}/change-password`, data);
+  }
+
 
   private handleLogoutCleanup(): void {
     this.tokenService.clearTokens();

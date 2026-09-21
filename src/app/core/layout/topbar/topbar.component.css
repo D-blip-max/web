@@ -128,6 +128,24 @@
   color: var(--error);
 }
 
+.btn-ai-reports {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.btn-ai-reports:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff !important;
+  text-decoration: none;
+}
+
+.btn-ai-reports i {
+  color: inherit;
+}
+
 .logout-text {
   font-size: 0.825rem;
   font-weight: 600;

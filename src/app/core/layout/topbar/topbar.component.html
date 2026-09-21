@@ -19,6 +19,12 @@
       </div>
     }
 
+    <!-- AI Voice Reports Quick Link -->
+    <a routerLink="/reportes-ia" class="btn-icon btn-ai-reports" title="Reportes por Voz con IA">
+      <i class="bi bi-mic-fill"></i>
+      <span class="d-none d-md-inline ms-1" style="font-size: 0.8rem; font-weight: 600;">Reportes IA</span>
+    </a>
+
     <!-- Dark Mode Toggle -->
     <button (click)="onToggleDark()" class="btn-icon btn-dark-toggle" [title]="isDark() ? 'Modo claro' : 'Modo oscuro'">
       @if (isDark()) {

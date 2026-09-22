@@ -27,9 +27,10 @@ export class BitacoraComponent implements OnInit {
     'Autenticación',
     'Usuarios',
     'Ventas',
-    'Inventario',
+    'Pagos',
     'Reservas',
-    'Roles'
+    'Productos',
+    'Inventario'
   ];
 
   rolesList = [
@@ -98,10 +99,14 @@ export class BitacoraComponent implements OnInit {
         return 'badge-module-users';
       case 'ventas':
         return 'badge-module-sales';
-      case 'inventario':
-        return 'badge-module-inventory';
+      case 'pagos':
+        return 'badge-module-payments';
       case 'reservas':
         return 'badge-module-reservations';
+      case 'productos':
+        return 'badge-module-products';
+      case 'inventario':
+        return 'badge-module-inventory';
       default:
         return 'badge-module-default';
     }

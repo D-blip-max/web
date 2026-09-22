@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { InventoryService } from '../../../core/services/inventory.service';
@@ -38,6 +38,28 @@ export class InventoryStockComponent implements OnInit {
   inventoryItems = signal<EnrichedInventoryItem[]>([]);
   alerts = signal<StockAlert[]>([]);
   variantsMap = new Map<string, { sku: string; talla: string; color: string; productoNombre: string }>();
+
+  searchQuery = signal<string>('');
+
+  filteredInventory = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    const items = this.inventoryItems();
+    if (!q) return items;
+
+    return items.filter(item => {
+      const prodName = (item.variantInfo?.productoNombre || '').toLowerCase();
+      const sku = (item.variantInfo?.sku || '').toLowerCase();
+      const talla = (item.variantInfo?.talla || '').toLowerCase();
+      const color = (item.variantInfo?.color || '').toLowerCase();
+      const ubicacion = (item.ubicacion || '').toLowerCase();
+
+      return prodName.includes(q) ||
+             sku.includes(q) ||
+             talla.includes(q) ||
+             color.includes(q) ||
+             ubicacion.includes(q);
+    });
+  });
 
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);

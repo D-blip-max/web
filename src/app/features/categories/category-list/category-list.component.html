@@ -37,8 +37,23 @@
     }
 
     <div class="card glass-card">
-      <div class="card-header">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h3>Categorías del Catálogo</h3>
+        <div class="search-input-box" style="max-width: 300px;">
+          <i class="bi bi-search search-icon"></i>
+          <input
+            type="text"
+            class="form-control search-field"
+            placeholder="Buscar categoría..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+          @if (searchQuery()) {
+            <button class="clear-search-btn" (click)="searchQuery.set('')" title="Borrar búsqueda">
+              <i class="bi bi-x"></i>
+            </button>
+          }
+        </div>
       </div>
 
       @if (isLoading()) {
@@ -58,7 +73,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (cat of categories(); track cat.id) {
+              @for (cat of filteredCategories(); track cat.id) {
                 <tr>
                   <td><strong class="text-primary">{{ cat.nombre }}</strong></td>
                   <td>{{ cat.descripcion || 'Sin descripción' }}</td>

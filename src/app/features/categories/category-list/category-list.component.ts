@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CategoryService } from '../../../core/services/category.service';
@@ -17,6 +17,15 @@ export class CategoryListComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   categories = signal<Category[]>([]);
+  searchQuery = signal<string>('');
+
+  filteredCategories = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    const list = this.categories();
+    if (!q) return list;
+    return list.filter(c => (c.nombre || '').toLowerCase().includes(q) || (c.descripcion || '').toLowerCase().includes(q));
+  });
+
   isLoading = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);

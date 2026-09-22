@@ -87,6 +87,25 @@
           </select>
         </div>
 
+        <div class="filter-group flex-2">
+          <label class="filter-label">Buscar Recibo / Cliente / Ref:</label>
+          <div class="search-input-box">
+            <i class="bi bi-search search-icon"></i>
+            <input
+              type="text"
+              class="form-control search-field"
+              placeholder="Ej: VTA-2025, Juan, QR-BNB..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+            />
+            @if (searchQuery()) {
+              <button class="clear-search-btn" (click)="searchQuery.set('')" title="Borrar búsqueda">
+                <i class="bi bi-x"></i>
+              </button>
+            }
+          </div>
+        </div>
+
         <div class="filter-actions">
           <button class="btn btn-secondary btn-sm" (click)="loadSales()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
@@ -102,7 +121,7 @@
     <div class="card glass-card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h3>Transacciones Registradas</h3>
-        <span class="badge badge-variant">{{ sales().length }} ventas</span>
+        <span class="badge badge-variant">{{ filteredSales().length }} ventas</span>
       </div>
       <div>
         <div class="table-responsive">
@@ -133,8 +152,14 @@
                     No se encontraron ventas con los filtros aplicados.
                   </td>
                 </tr>
+              } @else if (filteredSales().length === 0) {
+                <tr>
+                  <td colspan="8" class="text-center py-4 text-muted">
+                    No se encontraron ventas que coincidan con "{{ searchQuery() }}".
+                  </td>
+                </tr>
               } @else {
-                @for (s of sales(); track s.id) {
+                @for (s of filteredSales(); track s.id) {
                   <tr>
                     <td>
                       <strong class="text-primary">{{ s.numero_recibo }}</strong>

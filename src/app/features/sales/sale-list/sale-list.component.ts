@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -26,6 +26,27 @@ export class SaleListComponent implements OnInit {
   selectedBranchId = signal<string>('');
   selectedType = signal<string>('');
   selectedStatus = signal<string>('');
+  searchQuery = signal<string>('');
+
+  filteredSales = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    const list = this.sales();
+    if (!q) return list;
+
+    return list.filter(s => {
+      const recibo = (s.numero_recibo || '').toLowerCase();
+      const cliente = (s.cliente_nombre || '').toLowerCase();
+      const cajero = (s.cajero_nombre || '').toLowerCase();
+      const ref = (s.referencia_pago || '').toLowerCase();
+      const sucursal = (s.sucursal_nombre || '').toLowerCase();
+
+      return recibo.includes(q) ||
+             cliente.includes(q) ||
+             cajero.includes(q) ||
+             ref.includes(q) ||
+             sucursal.includes(q);
+    });
+  });
 
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);

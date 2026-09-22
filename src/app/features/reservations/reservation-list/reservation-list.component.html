@@ -83,6 +83,25 @@
             }
           </select>
         </div>
+
+        <div class="search-filter flex-1">
+          <label class="filter-label">Buscar Reserva / Cliente:</label>
+          <div class="search-input-box">
+            <i class="bi bi-search search-icon"></i>
+            <input
+              type="text"
+              class="form-control search-field"
+              placeholder="Ej: RES-2025, Juan Pérez..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+            />
+            @if (searchQuery()) {
+              <button class="clear-search-btn" (click)="searchQuery.set('')" title="Borrar búsqueda">
+                <i class="bi bi-x"></i>
+              </button>
+            }
+          </div>
+        </div>
       </div>
     </div>
 
@@ -90,7 +109,7 @@
     <div class="card glass-card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h3>Listado de Reservas</h3>
-        <span class="badge badge-variant">{{ reservations().length }} reservas</span>
+        <span class="badge badge-variant">{{ filteredReservations().length }} reservas</span>
       </div>
       <div>
         <div class="table-responsive">
@@ -121,8 +140,14 @@
                     No hay reservas para mostrar con los filtros actuales.
                   </td>
                 </tr>
+              } @else if (filteredReservations().length === 0) {
+                <tr>
+                  <td colspan="8" class="text-center py-4 text-muted">
+                    No se encontraron reservas que coincidan con "{{ searchQuery() }}".
+                  </td>
+                </tr>
               } @else {
-                @for (res of reservations(); track res.id) {
+                @for (res of filteredReservations(); track res.id) {
                   <tr>
                     <td>
                       <strong class="text-primary">{{ res.codigo }}</strong>

@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -23,6 +23,22 @@ export class ReservationListComponent implements OnInit {
   branches = signal<Branch[]>([]);
   selectedBranchId = signal<string>('');
   reservations = signal<Reservation[]>([]);
+
+  searchQuery = signal<string>('');
+
+  filteredReservations = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    const list = this.reservations();
+    if (!q) return list;
+
+    return list.filter(r => {
+      const codigo = (r.codigo || '').toLowerCase();
+      const cliente = (r.cliente_nombre || '').toLowerCase();
+      const sucursal = (r.sucursal_nombre || '').toLowerCase();
+
+      return codigo.includes(q) || cliente.includes(q) || sucursal.includes(q);
+    });
+  });
 
   isLoading = signal<boolean>(false);
   isActionLoading = signal<boolean>(false);

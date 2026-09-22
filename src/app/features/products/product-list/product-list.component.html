@@ -18,14 +18,23 @@
   <div class="filters-card glass-card mb-4">
     <div class="filters-grid">
       <div class="filter-item search-box">
-        <label>Buscar</label>
-        <input
-          type="text"
-          [(ngModel)]="searchTerm"
-          (keyup.enter)="onFilterChange()"
-          class="form-control"
-          placeholder="Nombre o descripción..."
-        />
+        <label>Buscar Prenda</label>
+        <div class="search-input-box">
+          <i class="bi bi-search search-icon"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchTermChange()"
+            (keyup.enter)="onFilterChange()"
+            class="form-control search-field"
+            placeholder="Buscar por nombre, SKU, temporada..."
+          />
+          @if (searchTerm) {
+            <button class="clear-search-btn" (click)="clearSearch()" title="Borrar búsqueda">
+              <i class="bi bi-x"></i>
+            </button>
+          }
+        </div>
       </div>
 
       <div class="filter-item">

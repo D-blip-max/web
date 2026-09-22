@@ -62,6 +62,20 @@ export class ProductListComponent implements OnInit {
     });
   }
 
+  private searchDebounceTimer: any = null;
+
+  onSearchTermChange(): void {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.searchDebounceTimer = setTimeout(() => {
+      this.loadProducts();
+    }, 350);
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.loadProducts();
+  }
+
   onFilterChange(): void {
     this.loadProducts();
   }

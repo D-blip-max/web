@@ -66,6 +66,25 @@
           </select>
         </div>
 
+        <div class="filter-group flex-1">
+          <label class="filter-label">Buscar Prenda / SKU / Talla / Color:</label>
+          <div class="search-input-box">
+            <i class="bi bi-search search-icon"></i>
+            <input
+              type="text"
+              class="form-control search-field"
+              placeholder="Ej: Chaqueta, CHQ-001, XL, Negro..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+            />
+            @if (searchQuery()) {
+              <button class="clear-search-btn" (click)="searchQuery.set('')" title="Borrar búsqueda">
+                <i class="bi bi-x"></i>
+              </button>
+            }
+          </div>
+        </div>
+
         <div class="filter-actions">
           <button
             class="btn btn-secondary btn-sm"
@@ -191,8 +210,14 @@
                     No hay registros de inventario para esta sucursal.
                   </td>
                 </tr>
+              } @else if (filteredInventory().length === 0) {
+                <tr>
+                  <td colspan="9" class="text-center py-4 text-muted">
+                    No se encontraron prendas o variantes que coincidan con "{{ searchQuery() }}".
+                  </td>
+                </tr>
               } @else {
-                @for (item of inventoryItems(); track item.id) {
+                @for (item of filteredInventory(); track item.id) {
                   <tr>
                     <td>
                       <div class="product-info">

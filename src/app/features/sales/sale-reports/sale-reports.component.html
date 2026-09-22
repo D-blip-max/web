@@ -115,6 +115,37 @@
           </span>
         </div>
       </div>
+
+      <div class="stat-card glass-card">
+        <div class="stat-icon" style="color: #10b981;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Ganancia Neta (87%)</span>
+          <span class="stat-value" style="color: #10b981;">
+            {{ (summary().ganancia_neta || (summary().ingresos_totales * 0.87)) | number:'1.2-2' }} Bs.
+          </span>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card">
+        <div class="stat-icon" style="color: #f59e0b;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Impuesto IVA (13%)</span>
+          <span class="stat-value" style="color: #f59e0b;">
+            {{ (summary().total_iva || (summary().ingresos_totales * 0.13)) | number:'1.2-2' }} Bs.
+          </span>
+        </div>
+      </div>
     </div>
 
     <div class="reports-grid">

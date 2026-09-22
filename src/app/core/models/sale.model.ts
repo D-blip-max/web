@@ -64,6 +64,8 @@ export interface Sale {
   metodo_pago: PaymentMethod;
   referencia_pago?: string | null;
   monto_total: number;
+  impuesto_iva?: number;
+  monto_neto?: number;
   monto_recibido?: number | null;
   cambio?: number | null;
   nota?: string | null;
@@ -80,6 +82,8 @@ export interface SalesSummaryReport {
   ventas_efectivo: number;
   ventas_tarjeta: number;
   ventas_qr: number;
+  total_iva?: number;
+  ganancia_neta?: number;
 }
 
 export interface TopProductReport {

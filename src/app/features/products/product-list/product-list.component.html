@@ -119,10 +119,23 @@
               @for (prod of products(); track prod.id) {
                 <tr>
                   <td>
-                    <strong class="text-primary">{{ prod.nombre }}</strong>
-                    @if (prod.descripcion) {
-                      <div class="text-muted text-xs">{{ prod.descripcion }}</div>
-                    }
+                    <div class="product-item-cell">
+                      <div class="product-thumb-wrapper">
+                        @if (prod.imagen_url) {
+                          <img [src]="prod.imagen_url" [alt]="prod.nombre" class="product-thumb-img" (error)="prod.imagen_url = ''" />
+                        } @else {
+                          <div class="product-thumb-placeholder">
+                            <i class="bi bi-image"></i>
+                          </div>
+                        }
+                      </div>
+                      <div class="product-name-block">
+                        <strong class="text-primary">{{ prod.nombre }}</strong>
+                        @if (prod.descripcion) {
+                          <div class="text-muted text-xs product-desc-clamp">{{ prod.descripcion }}</div>
+                        }
+                      </div>
+                    </div>
                   </td>
                   <td>{{ prod.categoria?.nombre || '—' }}</td>
                   <td><strong>Bs. {{ prod.precio_base | number:'1.2-2' }}</strong></td>

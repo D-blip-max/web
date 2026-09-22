@@ -119,3 +119,134 @@
   color: var(--text-muted);
 }
 
+/* ── Vista Previa de Imagen ────────────────────────────────────────────────── */
+.btn-clear-link {
+  background: none;
+  border: none;
+  color: var(--error);
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.btn-clear-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.image-preview-container {
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  transition: border-color var(--transition-fast);
+}
+
+.image-preview-container:hover {
+  border-color: var(--border-focus);
+}
+
+.preview-card-loaded {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.preview-img-wrapper {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-fast);
+}
+
+.preview-img-wrapper:hover .preview-img {
+  transform: scale(1.08);
+}
+
+.preview-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow: hidden;
+}
+
+.preview-badge-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.preview-filename {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.preview-link {
+  font-size: 0.775rem;
+  color: var(--accent);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+  transition: color var(--transition-fast);
+}
+
+.preview-link:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.preview-card-error,
+.preview-card-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+}
+
+.preview-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.error-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.error-msg strong {
+  color: var(--text-main);
+}
+

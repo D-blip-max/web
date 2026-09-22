@@ -58,6 +58,29 @@ export class ProductFormComponent implements OnInit {
     activo: [true]
   });
 
+  imageLoadError = signal<boolean>(false);
+
+  get currentImageUrl(): string {
+    return (this.productForm.get('imagen_url')?.value || '').trim();
+  }
+
+  onImageUrlInput(): void {
+    this.imageLoadError.set(false);
+  }
+
+  onImageLoadSuccess(): void {
+    this.imageLoadError.set(false);
+  }
+
+  onImageLoadError(): void {
+    this.imageLoadError.set(true);
+  }
+
+  clearImage(): void {
+    this.productForm.patchValue({ imagen_url: '' });
+    this.imageLoadError.set(false);
+  }
+
   tallasDisponibles = ['S', 'M', 'L', 'XL', 'XXL', 'ESTANDAR'];
 
   ngOnInit(): void {

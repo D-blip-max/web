@@ -84,8 +84,69 @@
             </div>
 
             <div class="form-group">
-              <label for="imagen_url">URL de Imagen (Opcional)</label>
-              <input id="imagen_url" type="text" formControlName="imagen_url" class="form-control" placeholder="https://ejemplo.com/foto.jpg" />
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="imagen_url" class="m-0">URL de Imagen (Opcional)</label>
+                @if (currentImageUrl) {
+                  <button type="button" class="btn-clear-link" (click)="clearImage()">
+                    <i class="bi bi-trash3"></i> Quitar imagen
+                  </button>
+                }
+              </div>
+
+              <div class="input-with-action">
+                <input
+                  id="imagen_url"
+                  type="text"
+                  formControlName="imagen_url"
+                  class="form-control"
+                  placeholder="https://ejemplo.com/foto.jpg"
+                  (input)="onImageUrlInput()"
+                />
+              </div>
+
+              <!-- Vista Previa Visual de la Prenda -->
+              <div class="image-preview-container mt-2">
+                @if (currentImageUrl && !imageLoadError()) {
+                  <div class="preview-card-loaded">
+                    <div class="preview-img-wrapper">
+                      <img
+                        [src]="currentImageUrl"
+                        [alt]="productForm.get('nombre')?.value || 'Vista previa de la prenda'"
+                        (load)="onImageLoadSuccess()"
+                        (error)="onImageLoadError()"
+                        class="preview-img"
+                      />
+                    </div>
+                    <div class="preview-info">
+                      <div class="preview-badge-status">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span>Vista previa activa</span>
+                      </div>
+                      <p class="preview-filename text-muted text-xs">
+                        {{ productForm.get('nombre')?.value || 'Prenda sin título' }}
+                      </p>
+                      <a [href]="currentImageUrl" target="_blank" rel="noopener noreferrer" class="preview-link">
+                        <i class="bi bi-box-arrow-up-right"></i> Abrir imagen original
+                      </a>
+                    </div>
+                  </div>
+                } @else if (currentImageUrl && imageLoadError()) {
+                  <div class="preview-card-error">
+                    <i class="bi bi-exclamation-triangle-fill text-warning preview-icon"></i>
+                    <div class="error-msg">
+                      <strong>No se pudo cargar la imagen</strong>
+                      <span class="text-muted text-xs">Verifica que el enlace sea una URL directa y pública a una imagen (JPG, PNG, WEBP).</span>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="preview-card-empty">
+                    <i class="bi bi-image text-muted preview-icon"></i>
+                    <div class="empty-msg">
+                      <span class="text-muted text-xs">Sin imagen. Pega una URL arriba para ver la vista previa de la prenda.</span>
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
 
             <div class="form-group">
